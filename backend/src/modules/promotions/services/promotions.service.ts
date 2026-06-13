@@ -76,4 +76,86 @@ export class PromotionsService {
       where: { id },
     });
   }
+
+  async generateAIPromotion() {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // 1. Fetch all products and their category names
+    const products = await this.prisma.product.findMany({
+      include: { category: true },
+    });
+
+    // 2. Fetch all order items from completed orders in the last 30 days
+    const orderItems = await this.prisma.orderItem.findMany({
+      where: {
+        order: {
+          createdAt: { gte: thirtyDaysAgo },
+          status: 'COMPLETED',
+        },
+      },
+      select: {
+        productId: true,
+        quantity: true,
+      },
+    });
+
+    // 3. Aggregate quantities sold per product
+    const salesMap = new Map<string, number>();
+    for (const item of orderItems) {
+      salesMap.set(item.productId, (salesMap.get(item.productId) || 0) + item.quantity);
+    }
+
+    // 4. Map products to the format expected by the AI service
+    const aiProductsPayload = products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      price: Number(p.price),
+      salesQty: salesMap.get(p.id) || 0,
+      category: p.category?.name || 'Uncategorized',
+    }));
+
+    // 5. Send payload to AI Service
+    const aiServiceUrl = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    try {
+      console.log('[Promotions Service] Sending inventory and sales data to AI Service...');
+      const response = await globalThis.fetch(`${aiServiceUrl}/generate-promotion`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ products: aiProductsPayload }),
+      });
+
+      if (response.ok) {
+        const recommendation = await response.json();
+        console.log('[Promotions Service] Received AI recommendation:', recommendation);
+        return recommendation;
+      } else {
+        const errText = await response.text();
+        console.error('AI Service /generate-promotion returned error:', errText);
+      }
+    } catch (err) {
+      console.error('Failed to connect to AI Service /generate-promotion:', err);
+    }
+
+    // Fallback if AI Service is unreachable
+    console.log('[Promotions Service] Falling back to local promotion logic');
+    const sortedProducts = [...aiProductsPayload].sort((a, b) => a.salesQty - b.salesQty);
+    const slowProd = sortedProducts[0];
+
+    const analysis = slowProd 
+      ? `Coffee sales are strong. ${slowProd.name} sales are weak (only ${slowProd.salesQty} sold).`
+      : 'No product data available for analysis.';
+    const name = slowProd ? `${slowProd.name} Booster` : 'Smart Discount';
+    const description = slowProd ? `Buy 2 ${slowProd.name}s Get 20% Off` : 'Get 10% off selected items';
+
+    return {
+      source: 'local-fallback',
+      analysis,
+      name,
+      description,
+      type: 'percentage',
+      value: 20.0,
+      durationDays: 7,
+    };
+  }
 }

@@ -1,8 +1,9 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
 import { ReportsService } from './services/reports.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { DateRangeDto } from './dto/date-range.dto';
+import { ChatRequestDto } from './dto/chat-request.dto';
 
 @ApiTags('Reports')
 @ApiBearerAuth()
@@ -33,5 +34,17 @@ export class ReportsController {
   @ApiOperation({ summary: 'Get orders report' })
   async getOrdersReport(@Query() dateRange: DateRangeDto) {
     return this.reportsService.getOrdersReport(dateRange);
+  }
+
+  @Get('ai-insights')
+  @ApiOperation({ summary: 'Get AI sales insights and business recommendations' })
+  async getAIInsights(@Query() dateRange: DateRangeDto) {
+    return this.reportsService.getAIInsights(dateRange);
+  }
+
+  @Post('chat')
+  @ApiOperation({ summary: 'Ask Cafe AI about store performance, slow items, best employees, and analytics' })
+  async chatCafe(@Body() chatRequestDto: ChatRequestDto) {
+    return this.reportsService.chatCafe(chatRequestDto);
   }
 }

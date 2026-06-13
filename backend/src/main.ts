@@ -9,8 +9,8 @@ async function bootstrap() {
   app.enableCors();
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
+      whitelist: false,
+      forbidNonWhitelisted: false,
       transform: true,
     }),
   );
@@ -26,7 +26,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   await app.listen(process.env.PORT ?? 3000);
-  console.log(`Server running on port ${process.env.PORT ?? 3000}`);
+  console.log('Server running on port ' + (process.env.PORT ?? 3000));
 }
 
 bootstrap();

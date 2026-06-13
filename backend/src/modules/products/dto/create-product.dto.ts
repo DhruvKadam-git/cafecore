@@ -1,29 +1,108 @@
-import { IsNotEmpty, IsNumber, IsString, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  MinLength,
+  MaxLength,
+  IsDecimal,
+  Min,
+  Max,
+  IsOptional,
+  IsUUID,
+  IsInt,
+  IsUrl,
+  IsBoolean,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProductDto {
-  @ApiProperty({ example: 'Espresso' })
-  @IsNotEmpty()
-  @IsString()
+  @ApiProperty({
+    description: 'Category ID (UUID)',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @IsNotEmpty({ message: 'Category ID is required' })
+  @IsUUID('4', { message: 'Category ID must be a valid UUID' })
+  categoryId: string;
+
+  @ApiProperty({
+    description: 'Product name',
+    example: 'Latte',
+    minLength: 2,
+    maxLength: 150,
+  })
+  @IsNotEmpty({ message: 'Product name is required' })
+  @IsString({ message: 'Product name must be a string' })
+  @MinLength(2, { message: 'Product name must be at least 2 characters' })
+  @MaxLength(150, { message: 'Product name must not exceed 150 characters' })
   name: string;
 
-  @ApiProperty({ example: 'Strong black coffee' })
+  @ApiProperty({
+    description: 'Product description',
+    example: 'Fresh hot latte with milk',
+    required: false,
+  })
   @IsOptional()
-  @IsString()
+  @IsString({ message: 'Product description must be a string' })
   description?: string;
 
-  @ApiProperty({ example: 150 })
-  @IsNotEmpty()
-  @IsNumber()
+  @ApiProperty({
+    description: 'Product image URL',
+    example: '/uploads/products/latte.png',
+    required: false,
+  })
+  @IsOptional()
+  @IsString({ message: 'Image URL must be a string' })
+  @IsUrl({}, { message: 'Image URL must be a valid URL' })
+  imageUrl?: string;
+
+  @ApiProperty({
+    description: 'Product price',
+    example: 180,
+    type: 'number',
+  })
+  @IsNotEmpty({ message: 'Price is required' })
+  @Type(() => Number)
+  @Min(0.01, { message: 'Price must be greater than 0' })
   price: number;
 
-  @ApiProperty({ example: 'coffee' })
-  @IsNotEmpty()
-  @IsString()
-  category: string;
+  @ApiProperty({
+    description: 'Tax rate percentage (0-100)',
+    example: 5,
+    type: 'number',
+  })
+  @IsNotEmpty({ message: 'Tax rate is required' })
+  @Type(() => Number)
+  @Min(0, { message: 'Tax rate must be at least 0' })
+  @Max(100, { message: 'Tax rate must not exceed 100' })
+  taxRate: number;
 
-  @ApiProperty({ example: 50, required: false })
+  @ApiProperty({
+    description: 'Unit of measure (Cup, Bottle, Plate, Piece, Glass, Scoop)',
+    example: 'Cup',
+    required: false,
+  })
   @IsOptional()
-  @IsNumber()
-  stock?: number;
+  @IsString({ message: 'Unit of measure must be a string' })
+  unitOfMeasure?: string;
+
+  @ApiProperty({
+    description: 'Preparation time in minutes',
+    example: 5,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'Preparation time must be an integer' })
+  @Min(1, { message: 'Preparation time must be at least 1 minute' })
+  preparationTime?: number;
+
+  @ApiProperty({
+    description: 'Visible in Kitchen Display System',
+    example: true,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean({ message: 'isKdsVisible must be a boolean' })
+  isKdsVisible?: boolean;
 }

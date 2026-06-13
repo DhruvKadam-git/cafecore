@@ -12,7 +12,7 @@ import {
   applyThemeToDocument,
   DEFAULT_THEME_ID,
   getThemeById,
-  isValidThemeId,
+  resolveThemeId,
   STORAGE_KEY,
   THEMES,
   ThemeDefinition,
@@ -35,7 +35,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    const initial = stored && isValidThemeId(stored) ? stored : DEFAULT_THEME_ID;
+    const initial = resolveThemeId(stored);
+    if (stored && stored !== initial) {
+      localStorage.setItem(STORAGE_KEY, initial);
+    }
     setThemeId(initial);
     applyThemeToDocument(initial);
     setIsReady(true);

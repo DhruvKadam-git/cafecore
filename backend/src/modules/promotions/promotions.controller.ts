@@ -27,6 +27,12 @@ export class PromotionsController {
     return this.promotionsService.findAll();
   }
 
+  @Get('generate-ai')
+  @ApiOperation({ summary: 'Generate AI promotion recommendation based on slow moving products and inventory' })
+  async generateAIPromotion() {
+    return this.promotionsService.generateAIPromotion();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get promotion by ID' })
   async findById(@Param('id') id: string) {

@@ -216,7 +216,6 @@ async function main() {
         price: prod.price,
         description: prod.description,
         categoryId: categoriesMap[prod.categoryName],
-        stock: 50, // default stock
       },
     });
     products.push(p);

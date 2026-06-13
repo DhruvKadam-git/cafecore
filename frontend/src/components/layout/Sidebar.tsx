@@ -15,6 +15,7 @@ import {
   ShoppingBag,
   ChefHat,
   X,
+  Bot,
   LucideIcon
 } from "lucide-react";
 
@@ -52,6 +53,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { label: "Users", href: "/users", icon: Users },
     // { label: "KDS Config", href: "/kds-config", icon: Monitor },
     { label: "Reports", href: "/reports", icon: BarChart3 },
+    { label: "Ask Cafe AI", href: "/ask-ai", icon: Bot },
   ];
 
   const bottomNavItems: NavItem[] = [
@@ -143,16 +145,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             })}
           </div>
 
-          {/* Cookie button */}
-          <div className="px-2 mt-2">
-            <button
-              type="button"
-              suppressHydrationWarning
-              className="w-full bg-black/30 hover:bg-black/50 text-white/70 hover:text-white text-[12px] py-2 px-3 rounded-[10px] transition-colors duration-200 text-left whitespace-nowrap"
-            >
-              Manage cookies or opt out
-            </button>
-          </div>
         </div>
       </aside>
     </>

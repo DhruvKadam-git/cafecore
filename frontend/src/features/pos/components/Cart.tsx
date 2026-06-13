@@ -2,14 +2,13 @@
 
 import React, { useState } from "react";
 import { Minus, Plus, Trash2, Tag, Send, ChefHat } from "lucide-react";
+import {
+  CartItem,
+  COUPON_CODES,
+  calculateOrderTotals,
+} from "@/lib/pos-order-utils";
 
-export interface CartItem {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
-  emoji: string;
-}
+export type { CartItem };
 
 interface CartProps {
   items: CartItem[];
@@ -19,28 +18,13 @@ interface CartProps {
   onCheckout: () => void;
 }
 
-const TAX_RATE = 0.08;
-
-const COUPON_CODES: Record<string, number> = {
-  "BREW10": 0.10,
-  "CAFE20": 0.20,
-  "SAVE5":  5,
-};
-
 export function Cart({ items, onUpdateQty, onRemove, onSendToKitchen, onCheckout }: CartProps) {
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; value: number } | null>(null);
   const [couponError, setCouponError] = useState("");
   const [showCoupon, setShowCoupon] = useState(false);
 
-  const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const tax = subtotal * TAX_RATE;
-
-  let discountAmt = 0;
-  if (appliedCoupon) {
-    discountAmt = appliedCoupon.value < 1 ? subtotal * appliedCoupon.value : appliedCoupon.value;
-  }
-  const total = Math.max(0, subtotal + tax - discountAmt);
+  const { subtotal, tax, discountAmt, total } = calculateOrderTotals(items, appliedCoupon);
 
   const applyCoupon = () => {
     const code = couponInput.trim().toUpperCase();

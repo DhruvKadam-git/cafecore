@@ -75,32 +75,33 @@ export function ProductGrid({ onAddToCart }: ProductGridProps) {
       </div>
 
       {/* Product Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto no-scrollbar flex-1 pr-1">
+      <div className="grid grid-cols-2 sm:grid-cols-3 auto-rows-min content-start items-start gap-3 overflow-y-auto no-scrollbar flex-1 min-h-0 py-1 pr-1">
         {filtered.map(product => (
-          <button
-            key={product.id}
-            onClick={() => onAddToCart(product)}
-            className="bg-surface border border-border-custom rounded-[16px] p-3.5 flex flex-col gap-2 text-left hover:border-primary hover:bg-primary/10 hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-150 group theme-transition"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-2xl">{product.emoji}</span>
-              <span
-                className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                style={{ backgroundColor: product.categoryColor }}
-              >
-                {product.category}
-              </span>
-            </div>
-            <div>
-              <p className="text-[13px] font-bold text-text-heading leading-tight">{product.name}</p>
-              <p className="text-[15px] font-bold text-primary mt-0.5">${product.price.toFixed(2)}</p>
-            </div>
-            <div className="flex items-center justify-end">
-              <span className="w-7 h-7 rounded-full bg-primary group-hover:brightness-105 flex items-center justify-center transition-colors">
-                <Plus size={14} className="text-white" />
-              </span>
-            </div>
-          </button>
+          <div key={product.id} className="p-0.5">
+            <button
+              onClick={() => onAddToCart(product)}
+              className="h-auto w-full bg-surface border border-border-custom rounded-[16px] p-3.5 flex flex-col gap-2 text-left hover:border-primary hover:bg-primary/10 hover:shadow-[0_4px_14px_rgba(201,120,58,0.15)] active:scale-[0.97] transition-all duration-150 group theme-transition"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-2xl">{product.emoji}</span>
+                <span
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
+                  style={{ backgroundColor: product.categoryColor }}
+                >
+                  {product.category}
+                </span>
+              </div>
+              <div>
+                <p className="text-[13px] font-bold text-text-heading leading-tight">{product.name}</p>
+                <p className="text-[15px] font-bold text-primary mt-0.5">${product.price.toFixed(2)}</p>
+              </div>
+              <div className="flex items-center justify-end">
+                <span className="w-7 h-7 rounded-full bg-primary group-hover:brightness-105 flex items-center justify-center transition-colors">
+                  <Plus size={14} className="text-white" />
+                </span>
+              </div>
+            </button>
+          </div>
         ))}
         {filtered.length === 0 && (
           <div className="col-span-full flex flex-col items-center justify-center py-12 text-text-muted">
