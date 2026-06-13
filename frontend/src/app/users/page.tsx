@@ -92,14 +92,14 @@ export default function UsersPage() {
         <h2 className="text-[20px] font-bold text-text-heading">Users &amp; Employees</h2>
         <div className="flex flex-wrap items-center gap-3">
           {/* View toggle */}
-          <div className="relative z-10 flex items-stretch h-[40px] p-1 bg-[#F1ECE4] border border-[#D7CABD] rounded-[14px] select-none min-w-[160px]">
+          <div className="relative z-10 flex items-stretch h-[40px] p-1 bg-surface border border-border-custom rounded-[14px] select-none min-w-[160px] theme-transition">
             {([
               { mode: "grid" as ViewMode, label: "Grid", Icon: LayoutGrid },
               { mode: "list" as ViewMode, label: "List", Icon: List },
             ]).map(({ mode, label, Icon }) => (
-              <button key={mode} onClick={() => setView(mode)}
+              <button key={mode} type="button" onClick={() => setView(mode)}
                 className={`flex flex-1 items-center justify-center gap-1.5 rounded-[10px] text-[14px] font-semibold transition-all duration-200 cursor-pointer ${
-                  view === mode ? "bg-[#C9783A] text-white shadow-sm" : "text-[#7B6858] hover:text-text-heading"
+                  view === mode ? "bg-primary text-white shadow-sm" : "text-text-body hover:text-text-heading"
                 }`}>
                 <Icon size={17} strokeWidth={1.75} />
                 <span>{label}</span>
@@ -107,8 +107,8 @@ export default function UsersPage() {
             ))}
           </div>
           {/* New user */}
-          <button onClick={() => setModal({ kind: "add" })}
-            className="h-[40px] px-5 rounded-[14px] bg-[#C9783A] text-white text-[15px] font-semibold flex items-center gap-2 hover:brightness-105 hover:-translate-y-[1px] transition-all shadow-[0_2px_6px_rgba(201,120,58,0.2)] cursor-pointer">
+          <button type="button" onClick={() => setModal({ kind: "add" })}
+            className="h-[40px] px-5 rounded-[14px] bg-primary text-white text-[15px] font-semibold flex items-center gap-2 hover:brightness-105 hover:-translate-y-[1px] transition-all shadow-sm cursor-pointer">
             <Plus size={18} strokeWidth={2.5} />
             New User
           </button>
@@ -129,13 +129,13 @@ export default function UsersPage() {
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search by name or email…"
-            className="w-full bg-[#F7F3ED] border border-[#D8CCBF] rounded-[12px] pl-9 pr-4 py-2.5 text-[14px] font-medium text-text-heading placeholder:text-text-muted outline-none focus:border-[#C9783A] transition-colors" />
+            className="w-full bg-surface border border-border-custom rounded-[12px] pl-9 pr-4 py-2.5 text-[14px] font-medium text-text-heading placeholder:text-text-muted outline-none focus:border-primary transition-colors theme-transition" />
         </div>
-        <div className="flex bg-[#F1ECE5] rounded-[13px] p-1 gap-1">
+        <div className="flex bg-surface rounded-[13px] p-1 gap-1 theme-transition">
           {(["All", "Admin", "Employee"] as const).map(r => (
-            <button key={r} onClick={() => setRoleFilter(r)}
+            <button key={r} type="button" onClick={() => setRoleFilter(r)}
               className={`px-3.5 py-1.5 rounded-[10px] text-[13px] font-semibold transition-all ${
-                roleFilter === r ? "bg-white text-[#CB7637] shadow-sm" : "text-text-muted hover:text-text-body"
+                roleFilter === r ? "bg-input text-primary shadow-sm" : "text-text-muted hover:text-text-body"
               }`}>
               {r}
             </button>
@@ -187,8 +187,8 @@ export default function UsersPage() {
       {/* ── Delete confirm ── */}
       {deleteTarget && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-50 flex items-center justify-center p-4">
-          <div className="bg-[#F7F3ED] border border-[#D8CCBF] rounded-[22px] w-full max-w-[380px] p-6 shadow-2xl flex flex-col gap-5">
-            <div className="w-12 h-12 rounded-[16px] bg-[#FFE3DE] flex items-center justify-center text-2xl">🗑️</div>
+          <div className="bg-surface border border-border-custom rounded-[22px] w-full max-w-[380px] p-6 shadow-2xl flex flex-col gap-5 theme-transition">
+            <div className="w-12 h-12 rounded-[16px] bg-danger/10 flex items-center justify-center text-2xl">🗑️</div>
             <div>
               <h3 className="text-[18px] font-bold text-text-heading">Delete User?</h3>
               <p className="text-[14px] text-text-muted mt-1.5 leading-relaxed">
@@ -197,12 +197,12 @@ export default function UsersPage() {
               </p>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteTarget(null)}
-                className="flex-1 bg-[#F1ECE5] hover:bg-[#E8DECE] text-text-heading text-[14px] font-bold py-3 rounded-[14px] transition-colors">
+              <button type="button" onClick={() => setDeleteTarget(null)}
+                className="flex-1 bg-surface hover:bg-border-custom text-text-heading text-[14px] font-bold py-3 rounded-[14px] transition-colors">
                 Cancel
               </button>
-              <button onClick={handleDelete}
-                className="flex-1 bg-[#D55C4C] hover:bg-[#C04A3C] text-white text-[14px] font-bold py-3 rounded-[14px] transition-colors">
+              <button type="button" onClick={handleDelete}
+                className="flex-1 bg-danger hover:brightness-95 text-white text-[14px] font-bold py-3 rounded-[14px] transition-colors">
                 Delete
               </button>
             </div>
@@ -212,8 +212,8 @@ export default function UsersPage() {
 
       {/* ── Toast ── */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#2B1F16] text-white text-[13px] font-semibold px-5 py-3 rounded-full shadow-xl flex items-center gap-2 animate-fade-in">
-          <span className="text-[#CB7637]">✓</span> {toast}
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-text-heading text-white text-[13px] font-semibold px-5 py-3 rounded-full shadow-xl flex items-center gap-2 animate-fade-in">
+          <span className="text-primary">✓</span> {toast}
         </div>
       )}
     </div>

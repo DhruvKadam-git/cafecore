@@ -11,7 +11,6 @@ import {
   Ticket,
   Calendar,
   Users,
-  Monitor,
   BarChart3,
   ShoppingBag,
   ChefHat,
@@ -51,7 +50,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { label: "Coupons & Promos", href: "/coupons", icon: Ticket },
     { label: "Bookings", href: "/bookings", icon: Calendar },
     { label: "Users", href: "/users", icon: Users },
-    { label: "KDS Config", href: "/kds-config", icon: Monitor },
+    // { label: "KDS Config", href: "/kds-config", icon: Monitor },
     { label: "Reports", href: "/reports", icon: BarChart3 },
   ];
 

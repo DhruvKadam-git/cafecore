@@ -78,12 +78,12 @@ export function UserModal({ mode, user, onSave, onClose }: UserModalProps) {
 
   return createPortal(
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-[#F7F3ED] border border-[#D8CCBF] rounded-[20px] shadow-xl w-full max-w-[480px] max-h-[90vh] overflow-y-auto no-scrollbar flex flex-col">
+      <div className="bg-surface border border-border-custom rounded-[20px] shadow-xl w-full max-w-[480px] max-h-[90vh] overflow-y-auto no-scrollbar flex flex-col theme-transition">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#D8CCBF]/60 bg-[#EFE8DE] sticky top-0 z-10 rounded-t-[20px]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-custom/60 bg-surface sticky top-0 z-10 rounded-t-[20px] theme-transition">
           <h3 className="text-[18px] font-bold text-text-heading">{titles[mode]}</h3>
-          <button onClick={onClose} className="p-1 rounded-full text-text-muted hover:text-text-heading hover:bg-[#DCCFC1]/50 transition-colors">
+          <button type="button" onClick={onClose} className="p-1 rounded-full text-text-muted hover:text-text-heading hover:bg-border-custom/50 transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -119,8 +119,8 @@ export function UserModal({ mode, user, onSave, onClose }: UserModalProps) {
                   <label className="text-[13px] font-bold text-text-body uppercase tracking-wider">Avatar Color</label>
                   <div className="flex flex-wrap gap-2">
                     {AVATAR_COLORS.map(c => (
-                      <button key={c} onClick={() => setAvatarColor(c)}
-                        className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ${avatarColor === c ? "border-[#2B1F16] scale-110" : "border-transparent"}`}
+                      <button key={c} type="button" onClick={() => setAvatarColor(c)}
+                        className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ${avatarColor === c ? "border-text-heading scale-110" : "border-transparent"}`}
                         style={{ backgroundColor: c }} />
                     ))}
                   </div>
@@ -132,10 +132,10 @@ export function UserModal({ mode, user, onSave, onClose }: UserModalProps) {
                 <label className="text-[13px] font-bold text-text-body uppercase tracking-wider">Name *</label>
                 <input type="text" value={name} onChange={e => { setName(e.target.value); setErrors(p => ({...p, name:""})); }}
                   readOnly={readOnly} placeholder="e.g. Jamie Sullivan"
-                  className={`h-[42px] px-3.5 rounded-[10px] bg-white border text-[14px] font-medium text-text-heading outline-none transition-all placeholder:text-[#9A8A7C] ${
-                    errors.name ? "border-[#D55C4C]" : "border-[#D8CCBF] focus:border-[#C9783A] focus:ring-2 focus:ring-[#C9783A]/10"
+                  className={`h-[42px] px-3.5 rounded-[10px] bg-input border text-[14px] font-medium text-text-heading outline-none transition-all placeholder:text-text-muted ${
+                    errors.name ? "border-danger" : "border-border-custom focus:border-primary focus:ring-2 focus:ring-primary/10"
                   } ${readOnly ? "opacity-70 cursor-default" : ""}`} />
-                {errors.name && <p className="text-[12px] text-[#D55C4C] font-semibold">{errors.name}</p>}
+                {errors.name && <p className="text-[12px] text-danger font-semibold">{errors.name}</p>}
               </div>
 
               {/* Email */}
@@ -143,10 +143,10 @@ export function UserModal({ mode, user, onSave, onClose }: UserModalProps) {
                 <label className="text-[13px] font-bold text-text-body uppercase tracking-wider">Email *</label>
                 <input type="email" value={email} onChange={e => { setEmail(e.target.value); setErrors(p => ({...p, email:""})); }}
                   readOnly={readOnly} placeholder="e.g. jamie@brewhouse.co"
-                  className={`h-[42px] px-3.5 rounded-[10px] bg-white border text-[14px] font-medium text-text-heading outline-none transition-all placeholder:text-[#9A8A7C] ${
-                    errors.email ? "border-[#D55C4C]" : "border-[#D8CCBF] focus:border-[#C9783A] focus:ring-2 focus:ring-[#C9783A]/10"
+                  className={`h-[42px] px-3.5 rounded-[10px] bg-input border text-[14px] font-medium text-text-heading outline-none transition-all placeholder:text-text-muted ${
+                    errors.email ? "border-danger" : "border-border-custom focus:border-primary focus:ring-2 focus:ring-primary/10"
                   } ${readOnly ? "opacity-70 cursor-default" : ""}`} />
-                {errors.email && <p className="text-[12px] text-[#D55C4C] font-semibold">{errors.email}</p>}
+                {errors.email && <p className="text-[12px] text-danger font-semibold">{errors.email}</p>}
               </div>
 
               {/* Role + Status row */}
@@ -157,7 +157,7 @@ export function UserModal({ mode, user, onSave, onClose }: UserModalProps) {
                     <p className="h-[42px] flex items-center px-3.5 text-[14px] font-semibold text-text-heading">{role}</p>
                   ) : (
                     <select value={role} onChange={e => setRole(e.target.value as UserRole)}
-                      className="h-[42px] px-3.5 rounded-[10px] bg-white border border-[#D8CCBF] text-[14px] font-semibold text-text-heading outline-none focus:border-[#C9783A] transition-all cursor-pointer">
+                      className="h-[42px] px-3.5 rounded-[10px] bg-input border border-border-custom text-[14px] font-semibold text-text-heading outline-none focus:border-primary transition-all cursor-pointer">
                       <option value="Employee">Employee</option>
                       <option value="Admin">Admin</option>
                     </select>
@@ -169,7 +169,7 @@ export function UserModal({ mode, user, onSave, onClose }: UserModalProps) {
                     <p className="h-[42px] flex items-center px-3.5 text-[14px] font-semibold text-text-heading">{status}</p>
                   ) : (
                     <select value={status} onChange={e => setStatus(e.target.value as UserStatus)}
-                      className="h-[42px] px-3.5 rounded-[10px] bg-white border border-[#D8CCBF] text-[14px] font-semibold text-text-heading outline-none focus:border-[#C9783A] transition-all cursor-pointer">
+                      className="h-[42px] px-3.5 rounded-[10px] bg-input border border-border-custom text-[14px] font-semibold text-text-heading outline-none focus:border-primary transition-all cursor-pointer">
                       <option value="Active">Active</option>
                       <option value="Archived">Archived</option>
                     </select>
@@ -191,13 +191,13 @@ export function UserModal({ mode, user, onSave, onClose }: UserModalProps) {
 
           {/* Buttons */}
           <div className="flex items-center justify-end gap-3 mt-2">
-            <button onClick={onClose}
-              className="h-[40px] px-5 rounded-[12px] bg-[#EFE8DE] text-text-body text-[14px] font-bold hover:bg-[#DCCFC1]/70 transition-colors cursor-pointer">
+            <button type="button" onClick={onClose}
+              className="h-[40px] px-5 rounded-[12px] bg-surface text-text-body text-[14px] font-bold hover:bg-border-custom transition-colors cursor-pointer">
               {readOnly ? "Close" : "Cancel"}
             </button>
             {!readOnly && (
-              <button onClick={handleSave}
-                className="h-[40px] px-5 rounded-[12px] bg-[#C9783A] text-white text-[14px] font-bold hover:brightness-105 transition-all shadow-[0_2px_4px_rgba(201,120,58,0.2)] cursor-pointer">
+              <button type="button" onClick={handleSave}
+                className="h-[40px] px-5 rounded-[12px] bg-primary text-white text-[14px] font-bold hover:brightness-105 transition-all shadow-sm cursor-pointer">
                 {mode === "add" ? "Create User" : mode === "password" ? "Update Password" : "Save Changes"}
               </button>
             )}
@@ -220,15 +220,15 @@ function PasswordField({ label, value, onChange, show, onToggle, error }: {
       <div className="relative">
         <input type={show ? "text" : "password"} value={value} onChange={e => onChange(e.target.value)}
           placeholder="••••••••"
-          className={`w-full h-[42px] px-3.5 pr-10 rounded-[10px] bg-white border text-[14px] font-medium text-text-heading outline-none transition-all placeholder:text-[#9A8A7C] ${
-            error ? "border-[#D55C4C]" : "border-[#D8CCBF] focus:border-[#C9783A] focus:ring-2 focus:ring-[#C9783A]/10"
+          className={`w-full h-[42px] px-3.5 pr-10 rounded-[10px] bg-input border text-[14px] font-medium text-text-heading outline-none transition-all placeholder:text-text-muted ${
+            error ? "border-danger" : "border-border-custom focus:border-primary focus:ring-2 focus:ring-primary/10"
           }`} />
         <button type="button" onClick={onToggle}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-heading transition-colors">
           {show ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
       </div>
-      {error && <p className="text-[12px] text-[#D55C4C] font-semibold">{error}</p>}
+      {error && <p className="text-[12px] text-danger font-semibold">{error}</p>}
     </div>
   );
 }

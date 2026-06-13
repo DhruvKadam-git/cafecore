@@ -64,10 +64,10 @@ export default function PaymentMethodsPage() {
   const hasUpi        = methods.some(m => m.type === "UPI" && m.active);
 
   const stats = [
-    { label: "Total Methods",   value: String(methods.length), icon: CreditCard,   bg: "bg-[#FBECE1]", text: "text-[#CB7637]" },
-    { label: "Active",          value: String(totalActive),    icon: CheckCircle,  bg: "bg-[#ECF1E7]", text: "text-[#78964E]" },
-    { label: "Inactive",        value: String(totalInactive),  icon: XCircle,      bg: "bg-[#F1ECE6]", text: "text-[#866443]" },
-    { label: "UPI Configured",  value: hasUpi ? "Yes" : "No",  icon: Wallet,       bg: "bg-[#FAF2E1]", text: "text-[#D6A144]" },
+    { label: "Total Methods",   value: String(methods.length), icon: CreditCard,   bg: "bg-primary/10",      text: "text-primary"      },
+    { label: "Active",          value: String(totalActive),    icon: CheckCircle,  bg: "bg-success/10",      text: "text-success"      },
+    { label: "Inactive",        value: String(totalInactive),  icon: XCircle,      bg: "bg-sidebar-bg/10",   text: "text-sidebar-bg"   },
+    { label: "UPI Configured",  value: hasUpi ? "Yes" : "No",  icon: Wallet,       bg: "bg-gold/10",         text: "text-gold"         },
   ];
 
   return (
@@ -81,11 +81,12 @@ export default function PaymentMethodsPage() {
           {totalActive} active at checkout
         </p>
         <button
+          type="button"
           onClick={() => setFormMode(formMode?.kind === "add" ? null : { kind: "add" })}
           className={`flex items-center gap-2 text-[14px] font-bold px-5 py-2.5 rounded-[14px] transition-all hover:-translate-y-0.5 shadow-sm active:scale-[0.97] ${
             formMode?.kind === "add"
-              ? "bg-[#F1ECE5] text-text-heading hover:bg-[#E8DECE]"
-              : "bg-[#CB7637] hover:bg-[#B86830] text-white"
+              ? "bg-surface text-text-heading hover:bg-border-custom"
+              : "bg-primary hover:brightness-105 text-white"
           }`}
         >
           <Plus size={16} strokeWidth={2.5} />
@@ -98,7 +99,7 @@ export default function PaymentMethodsPage() {
         {stats.map(s => {
           const Icon = s.icon;
           return (
-            <div key={s.label} className="bg-[#F7F3ED] border border-[#D8CCBF] rounded-[18px] p-4 flex items-center gap-4 hover:-translate-y-0.5 transition-all duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+            <div key={s.label} className="bg-surface border border-border-custom rounded-[18px] p-4 flex items-center gap-4 hover:-translate-y-0.5 transition-all duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)] theme-transition">
               <div className={`w-[48px] h-[48px] rounded-[14px] flex items-center justify-center shrink-0 ${s.bg} ${s.text}`}>
                 <Icon size={20} strokeWidth={1.75} />
               </div>
@@ -143,9 +144,9 @@ export default function PaymentMethodsPage() {
       {/* ── Delete confirm ── */}
       {deleteTarget && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-50 flex items-center justify-center p-4">
-          <div className="bg-[#F7F3ED] border border-[#D8CCBF] rounded-[22px] w-full max-w-[380px] p-6 shadow-2xl flex flex-col gap-5">
+          <div className="bg-surface border border-border-custom rounded-[22px] w-full max-w-[380px] p-6 shadow-2xl flex flex-col gap-5 theme-transition">
             <div className="flex items-start justify-between">
-              <div className="w-12 h-12 rounded-[16px] bg-[#FFE3DE] flex items-center justify-center text-2xl">
+              <div className="w-12 h-12 rounded-[16px] bg-danger/10 flex items-center justify-center text-2xl">
                 🗑️
               </div>
             </div>
@@ -158,10 +159,10 @@ export default function PaymentMethodsPage() {
               </p>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteTarget(null)} className="flex-1 bg-[#F1ECE5] hover:bg-[#E8DECE] text-text-heading text-[14px] font-bold py-3 rounded-[14px] transition-colors">
+              <button type="button" onClick={() => setDeleteTarget(null)} className="flex-1 bg-surface hover:bg-border-custom text-text-heading text-[14px] font-bold py-3 rounded-[14px] transition-colors">
                 Cancel
               </button>
-              <button onClick={handleDelete} className="flex-1 bg-[#D55C4C] hover:bg-[#C04A3C] text-white text-[14px] font-bold py-3 rounded-[14px] transition-colors">
+              <button type="button" onClick={handleDelete} className="flex-1 bg-danger hover:brightness-95 text-white text-[14px] font-bold py-3 rounded-[14px] transition-colors">
                 Remove
               </button>
             </div>
@@ -171,8 +172,8 @@ export default function PaymentMethodsPage() {
 
       {/* ── Toast ── */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#2B1F16] text-white text-[13px] font-semibold px-5 py-3 rounded-full shadow-xl flex items-center gap-2 animate-fade-in">
-          <span className="text-[#CB7637]">✓</span> {toast}
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-text-heading text-white text-[13px] font-semibold px-5 py-3 rounded-full shadow-xl flex items-center gap-2 animate-fade-in">
+          <span className="text-primary">✓</span> {toast}
         </div>
       )}
     </div>
