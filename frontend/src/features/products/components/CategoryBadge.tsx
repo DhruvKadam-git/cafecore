@@ -8,7 +8,7 @@ interface CategoryBadgeProps {
 }
 
 export function CategoryBadge({ category }: CategoryBadgeProps) {
-  const styles = {
+  const styles: Record<string, string> = {
     Espresso: "bg-primary/10 text-primary",
     "Cold Brew": "bg-sidebar-bg/10 text-sidebar-bg",
     Pastries: "bg-success/10 text-success",

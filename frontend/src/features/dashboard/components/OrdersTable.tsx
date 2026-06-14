@@ -1,29 +1,28 @@
 "use client";
 
 import React from "react";
+import { POSOrder } from "@/lib/pos-order-types";
 
-interface OrderRow {
-  id: string;
-  table: string;
-  staff: string;
-  amount: string;
-  status: "Paid" | "Draft" | "Cancelled";
+interface OrdersTableProps {
+  orders?: POSOrder[];
 }
 
-const ordersData: OrderRow[] = [
-  { id: "#0844", table: "Table 3", staff: "Jamie S.", amount: "$27.50", status: "Paid" },
-  { id: "#0843", table: "Table 7", staff: "Priya R.", amount: "$42.00", status: "Paid" },
-  { id: "#0842", table: "Bar", staff: "Jamie S.", amount: "$18.50", status: "Draft" },
-  { id: "#0841", table: "Table 2", staff: "Marcus T.", amount: "$31.00", status: "Paid" },
-  { id: "#0840", table: "Table 9", staff: "Priya R.", amount: "$15.50", status: "Cancelled" },
-];
-
-export function OrdersTable() {
+export function OrdersTable({ orders = [] }: OrdersTableProps) {
   const statusStyles = {
     Paid: "bg-success/10 text-success",
     Draft: "bg-gold/10 text-gold",
     Cancelled: "bg-danger/10 text-danger",
   };
+
+  const rows = orders.length > 0
+    ? orders.map((o) => ({
+        id: o.orderNumber,
+        table: o.table,
+        staff: o.employee,
+        amount: `$${o.amount.toFixed(2)}`,
+        status: o.status,
+      }))
+    : [];
 
   return (
     <div className="bg-surface border border-border-custom rounded-[20px] p-6 hover:translate-y-[-2px] transition-all duration-200 shadow-[0_1px_1px_rgba(0,0,0,0.03)] h-[440px] flex flex-col justify-between theme-transition">
@@ -59,7 +58,14 @@ export function OrdersTable() {
               </tr>
             </thead>
             <tbody>
-              {ordersData.map((row) => (
+              {rows.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-text-muted text-[14px]">
+                    No recent orders
+                  </td>
+                </tr>
+              ) : (
+                rows.map((row) => (
                 <tr
                   key={row.id}
                   className="h-[56px] border-b border-border-custom/60 last:border-0 hover:bg-white/40 transition-colors"
@@ -86,7 +92,8 @@ export function OrdersTable() {
                     </span>
                   </td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>

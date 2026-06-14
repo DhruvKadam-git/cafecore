@@ -4,8 +4,6 @@ export type CouponDiscountType = "percentage" | "fixed_amount";
 
 export type PromotionScope = "product" | "order";
 
-export type PromotionTriggerType = "min_qty" | "min_amount";
-
 export type PromotionDiscountType = "percentage" | "fixed_amount";
 
 export interface Coupon {
@@ -20,10 +18,13 @@ export interface Promotion {
   id: string;
   name: string;
   scope: PromotionScope;
-  triggerType: PromotionTriggerType;
-  triggerValue: number;
+  productId?: string;
+  productName?: string;
+  minQuantity?: number;
+  minOrderAmount?: number;
   discountType: PromotionDiscountType;
   discountValue: number;
+  isActive: boolean;
 }
 
 export type CouponFormData = Pick<
@@ -31,7 +32,9 @@ export type CouponFormData = Pick<
   "code" | "discountType" | "value" | "active"
 > & { id?: string };
 
-export type PromotionFormData = Omit<Promotion, "id"> & { id?: string };
+export type PromotionFormData = Omit<Promotion, "id" | "productName" | "isActive"> & {
+  id?: string;
+};
 
 export function formatCouponDiscountType(type: CouponDiscountType): string {
   return type === "percentage" ? "Percentage" : "Fixed amount";
@@ -42,10 +45,15 @@ export function formatCouponValue(type: CouponDiscountType, value: number): stri
 }
 
 export function formatPromotionTrigger(
-  type: PromotionTriggerType,
-  value: number
+  promo: Pick<Promotion, "scope" | "minQuantity" | "minOrderAmount">
 ): string {
-  return type === "min_qty" ? `Min Qty: ${value}` : `Min Amount: $${value}`;
+  if (promo.scope === "product" && promo.minQuantity) {
+    return `Min Qty: ${promo.minQuantity}`;
+  }
+  if (promo.minOrderAmount) {
+    return `Min Amount: $${promo.minOrderAmount}`;
+  }
+  return "—";
 }
 
 export function formatPromotionDiscount(

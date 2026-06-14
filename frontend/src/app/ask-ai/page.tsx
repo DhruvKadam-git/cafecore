@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Bot, Send, Sparkles, RefreshCw, AlertCircle, Trash2, ArrowRight } from "lucide-react";
+import { Bot, Send, Trash2, ArrowRight } from "lucide-react";
+import { useAuth } from "@/components/providers/auth-provider";
+import { marketingApi } from "@/lib/api";
+import { useToast } from "@/components/toast/use-toast";
+import { toastApiError } from "@/components/toast/toast-utils";
 
 interface Message {
   role: "user" | "assistant" | "system";
@@ -9,6 +13,8 @@ interface Message {
 }
 
 export default function AskAiPage() {
+  const { isAuthenticated, isReady } = useAuth();
+  const toast = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -16,12 +22,11 @@ export default function AskAiPage() {
     },
   ]);
   const [input, setInput] = useState("");
-  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(
+    !isReady ? null : !isAuthenticated ? "Please sign in to use Cafe AI." : null
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const API_BASE_URL = "http://localhost:3000";
 
   const SUGGESTED_PROMPTS = [
     "Why are sales down?",
@@ -30,33 +35,15 @@ export default function AskAiPage() {
     "Which tables generate highest revenue?",
   ];
 
-  // Auto-login to obtain JWT token
+  // Auth state for chat
   useEffect(() => {
-    async function autoLogin() {
-      try {
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: "admin@cafe.com",
-            password: "Admin@123",
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setToken(data.accessToken);
-          console.log("Chatbot auto-login successful.");
-        } else {
-          setErrorMsg("Failed to authenticate with backend server. Make sure NestJS is running.");
-        }
-      } catch (err) {
-        console.error("Chatbot login error:", err);
-        setErrorMsg("Cannot connect to backend server. Make sure NestJS is running on port 3000.");
-      }
+    if (!isReady) return;
+    if (!isAuthenticated) {
+      setErrorMsg("Please sign in to use Cafe AI.");
+    } else {
+      setErrorMsg(null);
     }
-    autoLogin();
-  }, []);
+  }, [isReady, isAuthenticated]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -64,7 +51,7 @@ export default function AskAiPage() {
   }, [messages, loading]);
 
   const handleSendMessage = async (textToSend: string) => {
-    if (!textToSend.trim() || loading || !token) return;
+    if (!textToSend.trim() || loading || !isAuthenticated) return;
 
     const userMessage: Message = { role: "user", content: textToSend };
     setMessages((prev) => [...prev, userMessage]);
@@ -79,32 +66,14 @@ export default function AskAiPage() {
     }));
 
     try {
-      const response = await fetch(`${API_BASE_URL}/reports/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          message: textToSend,
-          history: historyPayload,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const assistantMessage: Message = {
-          role: "assistant",
-          content: data.reply || "I didn't receive a response from the service.",
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
-      } else {
-        const errJson = await response.json();
-        setErrorMsg(errJson.message || "Failed to fetch response from Cafe AI.");
-      }
+      const data = await marketingApi.chatReports(textToSend, historyPayload);
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: data.reply || "I didn't receive a response from the service.",
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (err) {
-      console.error("Chat connection error:", err);
-      setErrorMsg("Failed to connect to the backend server.");
+      toastApiError(toast, err);
     } finally {
       setLoading(false);
     }
@@ -183,10 +152,9 @@ export default function AskAiPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-120px)] max-w-[1200px] mx-auto font-sans p-4 md:p-6 text-slate-800">
       
-      {/* Alert Header */}
+      {/* Auth notice */}
       {errorMsg && (
-        <div className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded-2xl mb-4 shadow-sm animate-fade-in">
-          <AlertCircle size={18} className="shrink-0" />
+        <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl mb-4 shadow-sm">
           <p className="text-[13px] font-medium">{errorMsg}</p>
         </div>
       )}
@@ -288,10 +256,10 @@ export default function AskAiPage() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            disabled={loading || !token}
+            disabled={loading || !isAuthenticated}
             placeholder={
-              !token
-                ? "Connecting to virtual business partner..."
+              !isAuthenticated
+                ? "Sign in to chat with Cafe AI..."
                 : "Ask anything (e.g., Which products should I remove?)..."
             }
             className="flex-1 h-[50px] px-5 bg-white border border-slate-200 rounded-[18px] text-[14px] focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 disabled:bg-slate-100/50"
@@ -299,7 +267,7 @@ export default function AskAiPage() {
 
           <button
             type="submit"
-            disabled={!input.trim() || loading || !token}
+            disabled={!input.trim() || loading || !isAuthenticated}
             className="w-[50px] h-[50px] bg-[#C9783A] text-white hover:bg-[#B7672D] rounded-[18px] flex items-center justify-center transition-all disabled:bg-slate-300 disabled:shadow-none shadow-sm cursor-pointer shrink-0"
           >
             <Send size={18} />

@@ -7,14 +7,19 @@ import {
   PromotionDiscountType,
   PromotionFormData,
   PromotionScope,
-  PromotionTriggerType,
 } from "@/lib/marketing-types";
+
+interface ProductOption {
+  id: string;
+  name: string;
+}
 
 interface PromotionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: PromotionFormData) => void;
   promotion?: Promotion | null;
+  products?: ProductOption[];
 }
 
 const inputClass =
@@ -27,26 +32,34 @@ export function PromotionModal({
   onClose,
   onSave,
   promotion,
+  products = [],
 }: PromotionModalProps) {
   const [name, setName] = useState("");
   const [scope, setScope] = useState<PromotionScope>("product");
-  const [triggerType, setTriggerType] =
-    useState<PromotionTriggerType>("min_qty");
-  const [triggerValue, setTriggerValue] = useState("");
+  const [productId, setProductId] = useState("");
+  const [minQuantity, setMinQuantity] = useState("");
+  const [minOrderAmount, setMinOrderAmount] = useState("");
   const [discountType, setDiscountType] =
     useState<PromotionDiscountType>("percentage");
   const [discountValue, setDiscountValue] = useState("");
   const [nameError, setNameError] = useState("");
+  const [productError, setProductError] = useState("");
+  const [thresholdError, setThresholdError] = useState("");
 
   useEffect(() => {
     if (isOpen) {
       setName(promotion?.name ?? "");
       setScope(promotion?.scope ?? "product");
-      setTriggerType(promotion?.triggerType ?? "min_qty");
-      setTriggerValue(promotion ? String(promotion.triggerValue) : "");
+      setProductId(promotion?.productId ?? "");
+      setMinQuantity(promotion?.minQuantity ? String(promotion.minQuantity) : "");
+      setMinOrderAmount(
+        promotion?.minOrderAmount ? String(promotion.minOrderAmount) : ""
+      );
       setDiscountType(promotion?.discountType ?? "percentage");
       setDiscountValue(promotion ? String(promotion.discountValue) : "");
       setNameError("");
+      setProductError("");
+      setThresholdError("");
     }
   }, [isOpen, promotion]);
 
@@ -61,13 +74,13 @@ export function PromotionModal({
       return;
     }
 
-    const parsedTriggerValue = parseFloat(triggerValue);
-    const parsedDiscountValue = parseFloat(discountValue);
+    if (scope === "product" && !productId) {
+      setProductError("Product is required for product-scoped promotions.");
+      return;
+    }
 
+    const parsedDiscountValue = parseFloat(discountValue);
     if (
-      !triggerValue ||
-      isNaN(parsedTriggerValue) ||
-      parsedTriggerValue <= 0 ||
       !discountValue ||
       isNaN(parsedDiscountValue) ||
       parsedDiscountValue <= 0
@@ -75,12 +88,37 @@ export function PromotionModal({
       return;
     }
 
+    let parsedMinQuantity: number | undefined;
+    let parsedMinOrderAmount: number | undefined;
+
+    if (scope === "product") {
+      parsedMinQuantity = parseFloat(minQuantity);
+      if (!minQuantity || isNaN(parsedMinQuantity) || parsedMinQuantity <= 0) {
+        setThresholdError("Minimum quantity must be greater than 0.");
+        return;
+      }
+    } else {
+      parsedMinOrderAmount = parseFloat(minOrderAmount);
+      if (
+        !minOrderAmount ||
+        isNaN(parsedMinOrderAmount) ||
+        parsedMinOrderAmount <= 0
+      ) {
+        setThresholdError("Minimum order amount must be greater than 0.");
+        return;
+      }
+    }
+
+    setThresholdError("");
+    setProductError("");
+
     onSave({
       id: promotion?.id,
       name: trimmedName,
       scope,
-      triggerType,
-      triggerValue: parsedTriggerValue,
+      productId: scope === "product" ? productId : undefined,
+      minQuantity: parsedMinQuantity,
+      minOrderAmount: parsedMinOrderAmount,
       discountType,
       discountValue: parsedDiscountValue,
     });
@@ -130,7 +168,11 @@ export function PromotionModal({
             <label className={labelClass}>Scope</label>
             <select
               value={scope}
-              onChange={(e) => setScope(e.target.value as PromotionScope)}
+              onChange={(e) => {
+                setScope(e.target.value as PromotionScope);
+                setProductError("");
+                setThresholdError("");
+              }}
               className={`${inputClass} cursor-pointer`}
             >
               <option value="product">Product</option>
@@ -138,35 +180,73 @@ export function PromotionModal({
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col">
-              <label className={labelClass}>Trigger type</label>
-              <select
-                value={triggerType}
-                onChange={(e) =>
-                  setTriggerType(e.target.value as PromotionTriggerType)
-                }
-                className={`${inputClass} cursor-pointer`}
-              >
-                <option value="min_qty">Min Qty</option>
-                <option value="min_amount">Min Amount</option>
-              </select>
-            </div>
+          {scope === "product" ? (
+            <>
+              <div className="flex flex-col">
+                <label className={labelClass}>Product *</label>
+                <select
+                  value={productId}
+                  onChange={(e) => {
+                    setProductId(e.target.value);
+                    setProductError("");
+                  }}
+                  className={`${inputClass} cursor-pointer ${productError ? "border-danger" : ""}`}
+                >
+                  <option value="">Select a product</option>
+                  {products.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+                {productError && (
+                  <p className="text-[12px] font-semibold text-danger mt-1">
+                    {productError}
+                  </p>
+                )}
+              </div>
 
+              <div className="flex flex-col">
+                <label className={labelClass}>Minimum quantity *</label>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  required
+                  value={minQuantity}
+                  onChange={(e) => {
+                    setMinQuantity(e.target.value);
+                    setThresholdError("");
+                  }}
+                  placeholder="3"
+                  className={`${inputClass} ${thresholdError ? "border-danger" : ""}`}
+                />
+              </div>
+            </>
+          ) : (
             <div className="flex flex-col">
-              <label className={labelClass}>Trigger value</label>
+              <label className={labelClass}>Minimum order amount *</label>
               <input
                 type="number"
                 min="0"
-                step={triggerType === "min_qty" ? "1" : "0.01"}
+                step="0.01"
                 required
-                value={triggerValue}
-                onChange={(e) => setTriggerValue(e.target.value)}
-                placeholder={triggerType === "min_qty" ? "2" : "30"}
-                className={inputClass}
+                value={minOrderAmount}
+                onChange={(e) => {
+                  setMinOrderAmount(e.target.value);
+                  setThresholdError("");
+                }}
+                placeholder="1000"
+                className={`${inputClass} ${thresholdError ? "border-danger" : ""}`}
               />
             </div>
-          </div>
+          )}
+
+          {thresholdError && (
+            <p className="text-[12px] font-semibold text-danger -mt-3">
+              {thresholdError}
+            </p>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col">

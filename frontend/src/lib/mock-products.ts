@@ -4,6 +4,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: "1",
     name: "Flat White",
+    categoryId: "mock-cat-espresso",
     category: "Espresso",
     price: 5.5,
     uom: "Cup",
@@ -16,6 +17,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: "2",
     name: "Nitro Cold Brew",
+    categoryId: "mock-cat-cold-brew",
     category: "Cold Brew",
     price: 6.5,
     uom: "Can",
@@ -28,6 +30,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: "3",
     name: "Butter Croissant",
+    categoryId: "mock-cat-pastries",
     category: "Pastries",
     price: 4.5,
     uom: "Piece",
@@ -40,6 +43,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: "4",
     name: "BLT Club",
+    categoryId: "mock-cat-sandwiches",
     category: "Sandwiches",
     price: 11.0,
     uom: "Piece",
@@ -52,6 +56,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: "5",
     name: "Chai Latte",
+    categoryId: "mock-cat-tea",
     category: "Tea",
     price: 5.0,
     uom: "Cup",
@@ -64,6 +69,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: "6",
     name: "Avocado Toast",
+    categoryId: "mock-cat-sandwiches",
     category: "Sandwiches",
     price: 9.0,
     uom: "Plate",

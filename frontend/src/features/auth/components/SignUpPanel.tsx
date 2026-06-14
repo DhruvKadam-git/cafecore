@@ -3,6 +3,9 @@
 import React, { useState } from "react";
 import { ArrowLeft, ArrowRight, ChevronDown, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import { AuthInput } from "./AuthInput";
+import { useAuth } from "@/components/providers/auth-provider";
+import { useToast } from "@/components/toast/use-toast";
+import { toastApiError } from "@/components/toast/toast-utils";
 
 type SignUpRole = "Employee" | "Admin";
 
@@ -11,12 +14,14 @@ interface SignUpPanelProps {
 }
 
 export function SignUpPanel({ onBackToSignIn }: SignUpPanelProps) {
+  const { signup } = useAuth();
+  const toast = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<SignUpRole>("Employee");
   const [showPassword, setShowPassword] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
@@ -29,15 +34,22 @@ export function SignUpPanel({ onBackToSignIn }: SignUpPanelProps) {
     return e;
   };
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     const e = validate();
     if (Object.keys(e).length) {
       setErrors(e);
-      setSuccess(false);
       return;
     }
     setErrors({});
-    setSuccess(true);
+    setLoading(true);
+    try {
+      await signup(name.trim(), email.trim(), password, role === "Admin" ? "ADMIN" : "EMPLOYEE");
+      toast.success("Account created — you can sign in now");
+    } catch (err) {
+      toastApiError(toast, err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const passwordToggle = (
@@ -53,8 +65,6 @@ export function SignUpPanel({ onBackToSignIn }: SignUpPanelProps) {
 
   return (
     <div className="px-8 py-9 sm:px-10 sm:py-10 flex flex-col bg-surface theme-transition">
-
-      {/* Header with back button */}
       <div className="mb-7">
         <button
           type="button"
@@ -72,7 +82,6 @@ export function SignUpPanel({ onBackToSignIn }: SignUpPanelProps) {
         </p>
       </div>
 
-      {/* Fields */}
       <div className="flex flex-col gap-4 mb-6">
         <AuthInput
           id="signup-name"
@@ -105,7 +114,6 @@ export function SignUpPanel({ onBackToSignIn }: SignUpPanelProps) {
           error={errors.password}
         />
 
-        {/* Role dropdown */}
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor="signup-role"
@@ -131,24 +139,16 @@ export function SignUpPanel({ onBackToSignIn }: SignUpPanelProps) {
         </div>
       </div>
 
-      {/* Success message */}
-      {success && (
-        <p className="text-[13px] font-semibold text-success mb-4 bg-success/10 border border-success/20 rounded-[10px] px-3 py-2.5">
-          ✓ Account created! You can now sign in.
-        </p>
-      )}
-
-      {/* Sign up button */}
       <button
         type="button"
         onClick={handleSignUp}
-        className="w-full flex items-center justify-center gap-2 bg-primary hover:brightness-105 text-white text-[15px] font-bold py-3.5 rounded-[12px] transition-all duration-150 active:scale-[0.98] shadow-sm"
+        disabled={loading}
+        className="w-full flex items-center justify-center gap-2 bg-primary hover:brightness-105 disabled:opacity-60 text-white text-[15px] font-bold py-3.5 rounded-[12px] transition-all duration-150 active:scale-[0.98] shadow-sm"
       >
-        Create Account
+        {loading ? "Creating..." : "Create Account"}
         <ArrowRight size={18} strokeWidth={2.5} />
       </button>
 
-      {/* Back link */}
       <p className="text-[13px] font-medium text-text-muted text-center mt-5">
         Already have an account?{" "}
         <button

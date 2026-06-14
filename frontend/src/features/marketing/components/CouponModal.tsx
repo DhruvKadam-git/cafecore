@@ -12,9 +12,10 @@ import { StatusToggle } from "@/features/products/components/StatusToggle";
 interface CouponModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: CouponFormData) => void;
+  onSave: (data: CouponFormData) => Promise<void>;
   coupon?: Coupon | null;
   existingCodes: string[];
+  saving?: boolean;
 }
 
 const inputClass =
@@ -28,6 +29,7 @@ export function CouponModal({
   onSave,
   coupon,
   existingCodes,
+  saving = false,
 }: CouponModalProps) {
   const [code, setCode] = useState("");
   const [discountType, setDiscountType] =
@@ -35,6 +37,7 @@ export function CouponModal({
   const [value, setValue] = useState("");
   const [active, setActive] = useState(true);
   const [codeError, setCodeError] = useState("");
+  const [valueError, setValueError] = useState("");
 
   useEffect(() => {
     if (isOpen) {
@@ -43,12 +46,13 @@ export function CouponModal({
       setValue(coupon ? String(coupon.value) : "");
       setActive(coupon?.active ?? true);
       setCodeError("");
+      setValueError("");
     }
   }, [isOpen, coupon]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const trimmedCode = code.trim().toUpperCase();
@@ -59,6 +63,7 @@ export function CouponModal({
 
     const numericValue = parseFloat(value);
     if (!value || isNaN(numericValue) || numericValue <= 0) {
+      setValueError("Enter a discount value greater than 0.");
       return;
     }
 
@@ -71,14 +76,13 @@ export function CouponModal({
       return;
     }
 
-    onSave({
+    await onSave({
       id: coupon?.id,
       code: trimmedCode,
       discountType,
       value: numericValue,
       active,
     });
-    onClose();
   };
 
   return (
@@ -95,7 +99,8 @@ export function CouponModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-1 rounded-full text-text-muted hover:text-text-heading hover:bg-surface transition-colors cursor-pointer theme-transition"
+              disabled={saving}
+              className="p-1 rounded-full text-text-muted hover:text-text-heading hover:bg-surface transition-colors cursor-pointer theme-transition disabled:opacity-50"
             >
               <X size={20} />
             </button>
@@ -111,6 +116,7 @@ export function CouponModal({
                 setCodeError("");
               }}
               placeholder="BREW10"
+              disabled={saving}
               className={`${inputClass} ${codeError ? "border-danger" : ""}`}
             />
             {codeError && (
@@ -128,6 +134,7 @@ export function CouponModal({
                 onChange={(e) =>
                   setDiscountType(e.target.value as CouponDiscountType)
                 }
+                disabled={saving}
                 className={`${inputClass} cursor-pointer`}
               >
                 <option value="percentage">Percentage</option>
@@ -143,10 +150,19 @@ export function CouponModal({
                 step={discountType === "percentage" ? "1" : "0.01"}
                 required
                 value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder="10"
-                className={inputClass}
+                onChange={(e) => {
+                  setValue(e.target.value);
+                  setValueError("");
+                }}
+                placeholder={discountType === "percentage" ? "10" : "50"}
+                disabled={saving}
+                className={`${inputClass} ${valueError ? "border-danger" : ""}`}
               />
+              {valueError && (
+                <p className="text-[12px] font-semibold text-danger mt-1">
+                  {valueError}
+                </p>
+              )}
             </div>
           </div>
 
@@ -161,15 +177,17 @@ export function CouponModal({
             <button
               type="button"
               onClick={onClose}
-              className="h-[44px] rounded-[12px] bg-white border border-border-custom text-[14px] font-semibold text-text-heading hover:bg-surface transition-colors cursor-pointer theme-transition"
+              disabled={saving}
+              className="h-[44px] rounded-[12px] bg-white border border-border-custom text-[14px] font-semibold text-text-heading hover:bg-surface transition-colors cursor-pointer theme-transition disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="h-[44px] rounded-[12px] bg-primary text-white text-[14px] font-semibold hover:brightness-[1.04] transition-all cursor-pointer"
+              disabled={saving}
+              className="h-[44px] rounded-[12px] bg-primary text-white text-[14px] font-semibold hover:brightness-[1.04] transition-all cursor-pointer disabled:opacity-60"
             >
-              {coupon ? "Save Coupon" : "Create Coupon"}
+              {saving ? "Saving..." : coupon ? "Save Coupon" : "Create Coupon"}
             </button>
           </div>
         </form>

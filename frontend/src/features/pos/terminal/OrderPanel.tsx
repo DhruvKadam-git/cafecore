@@ -3,43 +3,68 @@
 import { useState } from "react";
 import { Minus, Plus, Trash2, Tag, Send, ChefHat, UtensilsCrossed } from "lucide-react";
 import {
+  AppliedCoupon,
   CartItem,
-  COUPON_CODES,
+  OrderTotals,
   calculateOrderTotals,
 } from "@/lib/pos-order-utils";
 
 interface OrderPanelProps {
   items: CartItem[];
-  onUpdateQty: (id: number, delta: number) => void;
-  onRemove: (id: number) => void;
+  appliedCoupon: AppliedCoupon | null;
+  serverTotals: OrderTotals | null;
+  onUpdateQty: (id: string, delta: number) => void;
+  onRemove: (id: string) => void;
   onSendToKitchen: () => void;
   onCheckout: (total: number) => void;
+  onApplyCoupon: (code: string) => Promise<void>;
+  busy?: boolean;
 }
 
 export function OrderPanel({
   items,
+  appliedCoupon,
+  serverTotals,
   onUpdateQty,
   onRemove,
   onSendToKitchen,
   onCheckout,
+  onApplyCoupon,
+  busy = false,
 }: OrderPanelProps) {
   const [couponInput, setCouponInput] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; value: number } | null>(null);
   const [couponError, setCouponError] = useState("");
   const [showCoupon, setShowCoupon] = useState(false);
+  const [couponLoading, setCouponLoading] = useState(false);
 
-  const { subtotal, tax, discountAmt, total } = calculateOrderTotals(items, appliedCoupon);
+  const { subtotal, tax, discountAmt, total } = calculateOrderTotals(
+    items,
+    appliedCoupon,
+    serverTotals
+  );
 
-  const applyCoupon = () => {
+  const applyCoupon = async () => {
     const code = couponInput.trim().toUpperCase();
-    const val = COUPON_CODES[code];
-    if (val !== undefined) {
-      setAppliedCoupon({ code, value: val });
-      setCouponError("");
+    if (!code) {
+      setCouponError("Enter a coupon code.");
+      return;
+    }
+    if (items.length === 0) {
+      setCouponError("Add items before applying a coupon.");
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponError("");
+    try {
+      await onApplyCoupon(code);
       setShowCoupon(false);
       setCouponInput("");
-    } else {
-      setCouponError("Invalid coupon code");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to apply coupon";
+      setCouponError(message);
+    } finally {
+      setCouponLoading(false);
     }
   };
 
@@ -109,7 +134,7 @@ export function OrderPanel({
           <span className="text-[#1F1712] font-semibold">${subtotal.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-[13px] text-[#8E7A68] font-medium">
-          <span>Tax (8%)</span>
+          <span>Tax{serverTotals ? "" : " (8%)"}</span>
           <span className="text-[#1F1712] font-semibold">${tax.toFixed(2)}</span>
         </div>
         {appliedCoupon && (
@@ -150,9 +175,10 @@ export function OrderPanel({
               <button
                 type="button"
                 onClick={applyCoupon}
-                className="bg-[#D17A3B] hover:bg-[#BF6D34] text-white text-[13px] font-semibold px-3 py-2 rounded-[10px] transition-colors"
+                disabled={couponLoading}
+                className="bg-[#D17A3B] hover:bg-[#BF6D34] disabled:opacity-60 text-white text-[13px] font-semibold px-3 py-2 rounded-[10px] transition-colors"
               >
-                Apply
+                {couponLoading ? "..." : "Apply"}
               </button>
             </div>
           )}
@@ -165,7 +191,7 @@ export function OrderPanel({
           <button
             type="button"
             onClick={onSendToKitchen}
-            disabled={items.length === 0}
+            disabled={busy || items.length === 0}
             className="flex-1 flex items-center justify-center gap-2 bg-white border border-[#D7C9BB] hover:bg-[#F5F1EB] disabled:opacity-40 disabled:cursor-not-allowed text-[#1F1712] text-[13px] font-bold py-2.5 rounded-[12px] transition-colors"
           >
             <ChefHat size={15} /> Kitchen

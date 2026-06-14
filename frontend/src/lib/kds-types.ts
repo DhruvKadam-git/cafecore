@@ -10,6 +10,7 @@ export type KDSTimerUrgency = "normal" | "warning" | "danger";
 
 export interface KDSItem {
   id: number;
+  orderItemId?: string;
   name: string;
   quantity: number;
   done: boolean;
@@ -17,6 +18,7 @@ export interface KDSItem {
 
 export interface KDSOrder {
   id: string;
+  ticketId?: string;
   table: string;
   stage: KDSStage;
   items: KDSItem[];

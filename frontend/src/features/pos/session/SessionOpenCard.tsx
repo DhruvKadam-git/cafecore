@@ -15,7 +15,6 @@ interface SessionOpenCardProps {
 
 export function SessionOpenCard({ session, stats, tables }: SessionOpenCardProps) {
   const [openingCash, setOpeningCash] = useState("");
-  const [error, setError] = useState("");
 
   return (
     <div className="w-full max-w-[540px] bg-white rounded-[24px] border border-[#DDD2C8] shadow-[0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
@@ -26,18 +25,11 @@ export function SessionOpenCard({ session, stats, tables }: SessionOpenCardProps
         middle={
           <OpeningCashInput
             value={openingCash}
-            onChange={(v) => {
-              setOpeningCash(v);
-              if (error) setError("");
-            }}
-            error={error}
+            onChange={setOpeningCash}
           />
         }
         footer={
-          <SessionOpenActions
-            openingCash={openingCash}
-            onError={setError}
-          />
+          <SessionOpenActions openingCash={openingCash} />
         }
       />
     </div>

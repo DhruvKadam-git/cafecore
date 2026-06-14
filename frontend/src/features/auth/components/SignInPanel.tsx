@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { AuthInput } from "./AuthInput";
+import { useAuth } from "@/components/providers/auth-provider";
+import { useToast } from "@/components/toast/use-toast";
+import { toastApiError } from "@/components/toast/toast-utils";
 
 type LoginRole = "Employee" | "Admin";
 
@@ -14,13 +17,37 @@ interface SignInPanelProps {
 
 export function SignInPanel({ onCreateAccount }: SignInPanelProps) {
   const router = useRouter();
+  const { login } = useAuth();
+  const toast = useToast();
   const [role, setRole] = useState<LoginRole>("Employee");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = () => {
-    router.push(role === "Employee" ? "/pos/session" : "/");
+  const handleLogin = async () => {
+    if (!email.trim() || !password) {
+      setError("Email and password are required.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const user = await login(email.trim(), password);
+      const isEmployee = user.role === "EMPLOYEE";
+      if (role === "Employee" && !isEmployee) {
+        router.push("/");
+      } else if (role === "Admin" && isEmployee) {
+        router.push("/pos/session");
+      } else {
+        router.push(isEmployee ? "/pos/session" : "/");
+      }
+    } catch (err) {
+      toastApiError(toast, err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const passwordToggle = (
@@ -36,7 +63,6 @@ export function SignInPanel({ onCreateAccount }: SignInPanelProps) {
 
   return (
     <div className="px-8 py-9 sm:px-10 sm:py-10 flex flex-col bg-surface theme-transition">
-      {/* Header */}
       <div className="mb-7">
         <h2 className="text-[22px] font-bold text-text-heading leading-tight">Sign in</h2>
         <p className="text-[14px] font-medium text-text-muted mt-1">
@@ -44,7 +70,6 @@ export function SignInPanel({ onCreateAccount }: SignInPanelProps) {
         </p>
       </div>
 
-      {/* Role toggle */}
       <div className="flex rounded-full bg-background border border-border-custom p-1 mb-6 theme-transition">
         {(["Employee", "Admin"] as LoginRole[]).map((r) => (
           <button
@@ -62,7 +87,6 @@ export function SignInPanel({ onCreateAccount }: SignInPanelProps) {
         ))}
       </div>
 
-      {/* Fields */}
       <div className="flex flex-col gap-4 mb-6">
         <AuthInput
           id="signin-email"
@@ -85,17 +109,22 @@ export function SignInPanel({ onCreateAccount }: SignInPanelProps) {
         />
       </div>
 
-      {/* Login button */}
+      {error && (
+        <p className="text-[13px] font-semibold text-danger mb-4 bg-danger/10 border border-danger/20 rounded-[10px] px-3 py-2.5">
+          {error}
+        </p>
+      )}
+
       <button
         type="button"
         onClick={handleLogin}
-        className="w-full flex items-center justify-center gap-2 bg-primary hover:brightness-105 text-white text-[15px] font-bold py-3.5 rounded-[12px] transition-all duration-150 active:scale-[0.98] shadow-sm"
+        disabled={loading}
+        className="w-full flex items-center justify-center gap-2 bg-primary hover:brightness-105 disabled:opacity-60 text-white text-[15px] font-bold py-3.5 rounded-[12px] transition-all duration-150 active:scale-[0.98] shadow-sm"
       >
-        Login
+        {loading ? "Signing in..." : "Login"}
         <ArrowRight size={18} strokeWidth={2.5} />
       </button>
 
-      {/* Create account link */}
       <p className="text-[13px] font-medium text-text-muted text-center mt-5">
         Don&apos;t have an account?{" "}
         <button
@@ -107,7 +136,6 @@ export function SignInPanel({ onCreateAccount }: SignInPanelProps) {
         </button>
       </p>
 
-      {/* Demo quick access */}
       <div className="mt-6 pt-6 border-t border-border-custom">
         <p className="text-[12px] font-semibold text-text-muted text-center mb-3 tracking-wide uppercase">
           Demo quick access

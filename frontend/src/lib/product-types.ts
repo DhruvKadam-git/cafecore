@@ -3,7 +3,8 @@ export type ProductViewMode = "grid" | "list";
 export interface Product {
   id: string;
   name: string;
-  category: "Espresso" | "Cold Brew" | "Pastries" | "Sandwiches" | "Tea";
+  categoryId: string;
+  category: string;
   price: number;
   uom: string;
   tax: string;
@@ -15,7 +16,12 @@ export interface Product {
 
 export type ProductFormData = Pick<
   Product,
-  "name" | "category" | "price" | "uom" | "tax" | "active"
+  "name" | "categoryId" | "price" | "uom" | "tax" | "active"
 > & {
   id?: string;
 };
+
+export interface ProductCategoryOption {
+  id: string;
+  name: string;
+}

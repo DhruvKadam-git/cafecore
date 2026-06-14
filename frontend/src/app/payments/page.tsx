@@ -1,105 +1,69 @@
 "use client";
 
-import React, { useState } from "react";
-import { Plus, CreditCard, CheckCircle, XCircle, Wallet } from "lucide-react";
-import { PaymentMethod } from "@/features/payments/components/types";
-import { PaymentTable } from "@/features/payments/components/PaymentTable";
-import { PaymentForm } from "@/features/payments/components/PaymentForm";
+import React from "react";
+import { CreditCard, CheckCircle, DollarSign, Wallet } from "lucide-react";
+import { useAsyncData } from "@/hooks/use-async-data";
+import { marketingApi } from "@/lib/api";
+import { ApiPayment } from "@/lib/api/types";
 
-// ── Seed data ─────────────────────────────────────────────────────────────────
-const SEED: PaymentMethod[] = [
-  { id: "pm1", name: "Cash",          type: "Cash", upiId: "",            upiQrImage: null, active: true  },
-  { id: "pm2", name: "Card",          type: "Card", upiId: "",            upiQrImage: null, active: true  },
-  { id: "pm3", name: "UPI – Merchant",type: "UPI",  upiId: "cafe@ybl",    upiQrImage: null, active: true  },
-];
+function formatMoney(value: number | string): string {
+  const n = typeof value === "number" ? value : parseFloat(value) || 0;
+  return `$${n.toFixed(2)}`;
+}
 
-let idCounter = 10;
-const newId = () => `pm${idCounter++}`;
-
-type FormMode = { kind: "add" } | { kind: "edit"; method: PaymentMethod } | null;
+function methodLabel(method: string): string {
+  const m = method.toUpperCase();
+  if (m.includes("CASH")) return "Cash";
+  if (m.includes("CARD")) return "Card";
+  if (m.includes("UPI")) return "UPI";
+  return method;
+}
 
 export default function PaymentMethodsPage() {
-  const [methods,    setMethods]    = useState<PaymentMethod[]>(SEED);
-  const [formMode,   setFormMode]   = useState<FormMode>(null);
-  const [deleteTarget, setDeleteTarget] = useState<PaymentMethod | null>(null);
-  const [toast,      setToast]      = useState<string | null>(null);
+  const { data, loading, error, reload } = useAsyncData(async () => {
+    const [payments, stats] = await Promise.all([
+      marketingApi.getPayments(),
+      marketingApi.getPaymentStats(),
+    ]);
+    return { payments, stats: stats as Record<string, unknown> };
+  }, [], { toastOnError: true });
 
-  // ── helpers ──────────────────────────────────────────────────────────────────
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 2800);
-  };
+  const payments = data?.payments ?? [];
+  const stats = data?.stats ?? {};
 
-  const handleSave = (data: Omit<PaymentMethod, "id">) => {
-    if (formMode?.kind === "add") {
-      setMethods(prev => [...prev, { id: newId(), ...data }]);
-      showToast(`"${data.name}" added`);
-    } else if (formMode?.kind === "edit") {
-      setMethods(prev => prev.map(m => m.id === formMode.method.id ? { ...m, ...data } : m));
-      showToast(`"${data.name}" updated`);
-    }
-    setFormMode(null);
-  };
+  const totalAmount = payments.reduce((sum, p) => sum + (parseFloat(String(p.amount)) || 0), 0);
+  const byMethod = payments.reduce<Record<string, number>>((acc, p) => {
+    const key = methodLabel(p.method);
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
 
-  const handleToggleActive = (id: string) => {
-    setMethods(prev => prev.map(m => m.id === id ? { ...m, active: !m.active } : m));
-  };
-
-  const confirmDelete = (id: string) => {
-    const found = methods.find(m => m.id === id);
-    if (found) setDeleteTarget(found);
-  };
-
-  const handleDelete = () => {
-    if (!deleteTarget) return;
-    setMethods(prev => prev.filter(m => m.id !== deleteTarget.id));
-    showToast(`"${deleteTarget.name}" removed`);
-    setDeleteTarget(null);
-    if (formMode?.kind === "edit" && formMode.method.id === deleteTarget.id) setFormMode(null);
-  };
-
-  // ── stats ────────────────────────────────────────────────────────────────────
-  const totalActive   = methods.filter(m => m.active).length;
-  const totalInactive = methods.filter(m => !m.active).length;
-  const hasUpi        = methods.some(m => m.type === "UPI" && m.active);
-
-  const stats = [
-    { label: "Total Methods",   value: String(methods.length), icon: CreditCard,   bg: "bg-primary/10",      text: "text-primary"      },
-    { label: "Active",          value: String(totalActive),    icon: CheckCircle,  bg: "bg-success/10",      text: "text-success"      },
-    { label: "Inactive",        value: String(totalInactive),  icon: XCircle,      bg: "bg-sidebar-bg/10",   text: "text-sidebar-bg"   },
-    { label: "UPI Configured",  value: hasUpi ? "Yes" : "No",  icon: Wallet,       bg: "bg-gold/10",         text: "text-gold"         },
+  const statCards = [
+    { label: "Total Payments", value: String(payments.length), icon: CreditCard, bg: "bg-primary/10", text: "text-primary" },
+    { label: "Total Collected", value: formatMoney(Number(stats.totalAmount ?? totalAmount)), icon: DollarSign, bg: "bg-success/10", text: "text-success" },
+    { label: "Successful", value: String(payments.filter((p) => p.status?.toUpperCase() === "COMPLETED" || p.status?.toUpperCase() === "SUCCESS").length), icon: CheckCircle, bg: "bg-gold/10", text: "text-gold" },
+    { label: "Methods Used", value: String(Object.keys(byMethod).length), icon: Wallet, bg: "bg-sidebar-bg/10", text: "text-sidebar-bg" },
   ];
 
   return (
     <div className="flex flex-col gap-6 md:gap-8 max-w-[1200px] mx-auto">
-
-      {/* ── Top bar ── */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="text-[13px] text-text-muted">
-          {methods.length} method{methods.length !== 1 ? "s" : ""} configured
-          &nbsp;·&nbsp;
-          {totalActive} active at checkout
-        </p>
-        <button
-          type="button"
-          onClick={() => setFormMode(formMode?.kind === "add" ? null : { kind: "add" })}
-          className={`flex items-center gap-2 text-[14px] font-bold px-5 py-2.5 rounded-[14px] transition-all hover:-translate-y-0.5 shadow-sm active:scale-[0.97] ${
-            formMode?.kind === "add"
-              ? "bg-surface text-text-heading hover:bg-border-custom"
-              : "bg-primary hover:brightness-105 text-white"
-          }`}
-        >
-          <Plus size={16} strokeWidth={2.5} />
-          {formMode?.kind === "add" ? "Cancel" : "+ New"}
-        </button>
+      <div>
+        <h2 className="text-[22px] font-bold text-text-heading">Payments</h2>
+        <p className="text-[13px] text-text-muted mt-0.5">Transaction history from the live API.</p>
       </div>
 
-      {/* ── Stat cards ── */}
+      {error && (
+        <div className="flex items-center justify-between bg-danger/10 text-danger rounded-[12px] px-4 py-3 text-[13px] font-semibold">
+          <span>{error}</span>
+          <button type="button" onClick={reload} className="underline">Retry</button>
+        </div>
+      )}
+
       <section className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        {stats.map(s => {
+        {statCards.map((s) => {
           const Icon = s.icon;
           return (
-            <div key={s.label} className="bg-surface border border-border-custom rounded-[18px] p-4 flex items-center gap-4 hover:-translate-y-0.5 transition-all duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)] theme-transition">
+            <div key={s.label} className="bg-surface border border-border-custom rounded-[18px] p-4 flex items-center gap-4 theme-transition">
               <div className={`w-[48px] h-[48px] rounded-[14px] flex items-center justify-center shrink-0 ${s.bg} ${s.text}`}>
                 <Icon size={20} strokeWidth={1.75} />
               </div>
@@ -112,70 +76,38 @@ export default function PaymentMethodsPage() {
         })}
       </section>
 
-      {/* ── Add form (inline, slides in above table) ── */}
-      {formMode?.kind === "add" && (
-        <PaymentForm
-          mode="add"
-          existingNames={methods.map(m => m.name)}
-          onSave={handleSave}
-          onCancel={() => setFormMode(null)}
-        />
-      )}
-
-      {/* ── Table ── */}
-      <PaymentTable
-        methods={methods}
-        onEdit={m => setFormMode({ kind: "edit", method: m })}
-        onDelete={confirmDelete}
-        onToggleActive={handleToggleActive}
-      />
-
-      {/* ── Edit form (inline, below table) ── */}
-      {formMode?.kind === "edit" && (
-        <PaymentForm
-          mode="edit"
-          initial={formMode.method}
-          existingNames={methods.map(m => m.name)}
-          onSave={handleSave}
-          onCancel={() => setFormMode(null)}
-        />
-      )}
-
-      {/* ── Delete confirm ── */}
-      {deleteTarget && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-50 flex items-center justify-center p-4">
-          <div className="bg-surface border border-border-custom rounded-[22px] w-full max-w-[380px] p-6 shadow-2xl flex flex-col gap-5 theme-transition">
-            <div className="flex items-start justify-between">
-              <div className="w-12 h-12 rounded-[16px] bg-danger/10 flex items-center justify-center text-2xl">
-                🗑️
-              </div>
-            </div>
-            <div>
-              <h3 className="text-[18px] font-bold text-text-heading">Remove Payment Method?</h3>
-              <p className="text-[14px] text-text-muted mt-1.5 leading-relaxed">
-                Are you sure you want to remove{" "}
-                <span className="font-bold text-text-heading">&quot;{deleteTarget.name}&quot;</span>?
-                It will no longer appear at checkout.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button type="button" onClick={() => setDeleteTarget(null)} className="flex-1 bg-surface hover:bg-border-custom text-text-heading text-[14px] font-bold py-3 rounded-[14px] transition-colors">
-                Cancel
-              </button>
-              <button type="button" onClick={handleDelete} className="flex-1 bg-danger hover:brightness-95 text-white text-[14px] font-bold py-3 rounded-[14px] transition-colors">
-                Remove
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Toast ── */}
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-text-heading text-white text-[13px] font-semibold px-5 py-3 rounded-full shadow-xl flex items-center gap-2 animate-fade-in">
-          <span className="text-primary">✓</span> {toast}
-        </div>
-      )}
+      <div className="bg-surface border border-border-custom rounded-[20px] overflow-hidden theme-transition">
+        {loading ? (
+          <div className="text-center py-16 text-text-muted">Loading payments...</div>
+        ) : payments.length === 0 ? (
+          <div className="text-center py-16 text-text-muted">No payments recorded yet</div>
+        ) : (
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-border-custom bg-surface">
+                <th className="px-5 py-3 text-[13px] font-bold text-text-heading">Date</th>
+                <th className="px-5 py-3 text-[13px] font-bold text-text-heading">Method</th>
+                <th className="px-5 py-3 text-[13px] font-bold text-text-heading">Amount</th>
+                <th className="px-5 py-3 text-[13px] font-bold text-text-heading">Status</th>
+                <th className="px-5 py-3 text-[13px] font-bold text-text-heading">Order</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payments.map((p: ApiPayment) => (
+                <tr key={p.id} className="border-b border-border-custom/60 last:border-0 hover:bg-white/40">
+                  <td className="px-5 py-3 text-[14px] text-text-body">
+                    {new Date(p.createdAt).toLocaleString()}
+                  </td>
+                  <td className="px-5 py-3 text-[14px] font-semibold text-text-heading">{methodLabel(p.method)}</td>
+                  <td className="px-5 py-3 text-[14px] font-bold text-primary">{formatMoney(p.amount)}</td>
+                  <td className="px-5 py-3 text-[14px] text-text-muted">{p.status}</td>
+                  <td className="px-5 py-3 text-[14px] text-text-muted font-mono">{p.orderId.slice(0, 8)}…</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { POSOrder } from "@/lib/pos-order-types";
 import { OrderStatusBadge } from "./OrderStatusBadge";
+import { useToast } from "@/components/toast/use-toast";
 
 interface OrderDetailsDrawerProps {
   order: POSOrder;
@@ -13,8 +14,8 @@ interface OrderDetailsDrawerProps {
 
 export function OrderDetailsDrawer({ order, onClose }: OrderDetailsDrawerProps) {
   const router = useRouter();
+  const toast = useToast();
   const [visible, setVisible] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
@@ -28,11 +29,6 @@ export function OrderDetailsDrawer({ order, onClose }: OrderDetailsDrawerProps) 
   const subtotal = order.lineItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = order.tax ?? 0;
   const total = order.amount;
-
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 2400);
-  };
 
   return (
     <>
@@ -140,7 +136,7 @@ export function OrderDetailsDrawer({ order, onClose }: OrderDetailsDrawerProps) 
           {order.status === "Paid" && (
             <button
               type="button"
-              onClick={() => showToast("Receipt preview coming soon")}
+              onClick={() => toast.info("Receipt preview coming soon")}
               className="flex-1 h-[48px] rounded-[14px] bg-primary hover:brightness-95 text-white text-[15px] font-bold transition-all active:scale-[0.98]"
             >
               View Receipt
@@ -157,12 +153,6 @@ export function OrderDetailsDrawer({ order, onClose }: OrderDetailsDrawerProps) 
           )}
         </div>
       </div>
-
-      {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] bg-sidebar-bg text-white text-[13px] font-semibold px-5 py-2.5 rounded-full shadow-lg animate-fade-in">
-          {toast}
-        </div>
-      )}
     </>
   );
 }

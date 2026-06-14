@@ -12,6 +12,8 @@ import {
 
 interface POSUserMenuPanelProps {
   onClose: () => void;
+  onLogout: () => void;
+  userName: string;
 }
 
 function MenuItem({
@@ -54,9 +56,11 @@ function MenuDivider() {
   return <div className="h-px bg-border-custom mx-3 theme-transition" />;
 }
 
-export function POSUserMenuPanel({ onClose }: POSUserMenuPanelProps) {
+export function POSUserMenuPanel({ onClose, onLogout, userName }: POSUserMenuPanelProps) {
   return (
     <div className="absolute right-0 top-full mt-2 w-[240px] bg-surface border border-border-custom rounded-[14px] shadow-lg py-2 z-50 animate-theme-panel-in theme-transition">
+      <div className="px-4 py-2 text-[12px] font-semibold text-text-muted">{userName}</div>
+      <MenuDivider />
       <MenuItem href="/pos/orders" icon={ClipboardList} label="Orders List" onClick={onClose} />
       <MenuItem href="/pos/tables" icon={Table2} label="Table View" onClick={onClose} />
       <MenuItem href="/pos/customers" icon={UserCircle} label="Customers" onClick={onClose} />
@@ -68,7 +72,7 @@ export function POSUserMenuPanel({ onClose }: POSUserMenuPanelProps) {
 
       <MenuDivider />
 
-      <MenuItem href="/login" icon={LogOut} label="Sign Out" danger onClick={onClose} />
+      <MenuItem icon={LogOut} label="Sign Out" danger onClick={() => { onLogout(); onClose(); }} />
     </div>
   );
 }

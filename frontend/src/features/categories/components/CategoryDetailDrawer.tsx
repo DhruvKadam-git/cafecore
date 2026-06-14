@@ -5,6 +5,7 @@ import { X, Search, Package, DollarSign, TrendingUp, Pencil, ChevronRight, Plus 
 import { Category } from "./types";
 import { PRODUCTS_BY_CATEGORY, Product } from "./categoryProducts";
 import { ProductModal, ProductAvatar } from "./ProductModal";
+import { useToast } from "@/components/toast/use-toast";
 
 interface CategoryDetailDrawerProps {
   category: Category;
@@ -16,6 +17,7 @@ let pIdCounter = 1000;
 const newPId = () => `np-${pIdCounter++}`;
 
 export function CategoryDetailDrawer({ category, onClose, onEdit }: CategoryDetailDrawerProps) {
+  const toast = useToast();
   const [search, setSearch]   = useState("");
   const [filter, setFilter]   = useState<"all" | "Active" | "Inactive">("all");
   const [visible, setVisible] = useState(false);
@@ -31,27 +33,20 @@ export function CategoryDetailDrawer({ category, onClose, onEdit }: CategoryDeta
     product: Product | null;
   } | null>(null);
 
-  const [toast, setToast] = useState<string | null>(null);
-
   // animate-in
   useEffect(() => { requestAnimationFrame(() => setVisible(true)); }, []);
 
   const handleClose = () => { setVisible(false); setTimeout(onClose, 280); };
 
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 2400);
-  };
-
   // ── CRUD ─────────────────────────────────────────────────────────────────────
   const handleSaveProduct = (data: Omit<Product, "id">) => {
     if (productModal?.mode === "add") {
       setProducts(prev => [...prev, { id: newPId(), ...data }]);
-      showToast(`"${data.name}" added`);
+      toast.success(`"${data.name}" added`);
     } else if (productModal?.mode === "edit" && productModal.product) {
       const id = productModal.product.id;
       setProducts(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
-      showToast(`"${data.name}" updated`);
+      toast.success(`"${data.name}" updated`);
     }
     setProductModal(null);
   };
@@ -61,7 +56,7 @@ export function CategoryDetailDrawer({ category, onClose, onEdit }: CategoryDeta
     const name = productModal.product.name;
     setProducts(prev => prev.filter(p => p.id !== productModal.product!.id));
     setProductModal(null);
-    showToast(`"${name}" deleted`);
+    toast.success(`"${name}" deleted`);
   };
 
   // ── derived ───────────────────────────────────────────────────────────────────
@@ -275,13 +270,6 @@ export function CategoryDetailDrawer({ category, onClose, onEdit }: CategoryDeta
           onDelete={productModal.mode === "edit" ? handleDeleteProduct : undefined}
           onClose={() => setProductModal(null)}
         />
-      )}
-
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] bg-text-heading text-white text-[13px] font-semibold px-5 py-3 rounded-full shadow-xl flex items-center gap-2 animate-fade-in">
-          <span style={{ color: category.color }}>✓</span> {toast}
-        </div>
       )}
     </>
   );

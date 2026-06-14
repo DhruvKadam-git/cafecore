@@ -8,22 +8,54 @@ import {
   KDSViewMode,
   sortOrders,
 } from "@/lib/kds-types";
-import { INITIAL_KDS_ORDERS } from "@/lib/mock-kds-orders";
 import { KDSHeader } from "@/features/kds/components/KDSHeader";
 import { KDSToolbar } from "@/features/kds/components/KDSToolbar";
 import { KDSOrderCard } from "@/features/kds/components/KDSOrderCard";
 import { KDSKanbanBoard } from "@/features/kds/components/KDSKanbanBoard";
 import { KDSFooter } from "@/features/kds/components/KDSFooter";
+import { kdsApi, kdsStageToApi, mapKdsTicketToOrder } from "@/lib/api";
+import { useToast } from "@/components/toast/use-toast";
+import { toastApiError } from "@/components/toast/toast-utils";
+import { getErrorMessage } from "@/lib/api/errors";
 
 const VIEW_STORAGE_KEY = "brewhouse-kds-view";
+const POLL_MS = 10000;
 
 export default function KDSPage() {
-  const [orders, setOrders] = useState<KDSOrder[]>(INITIAL_KDS_ORDERS);
+  const toast = useToast();
+  const [orders, setOrders] = useState<KDSOrder[]>([]);
   const [filter, setFilter] = useState<KDSFilterStage>("all");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<KDSViewMode>("kanban");
   const [announcement, setAnnouncement] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const prevCountRef = useRef(orders.length);
+  const initialLoadRef = useRef(true);
+
+  const loadTickets = useCallback(async () => {
+    const toastOnLoadFailure = initialLoadRef.current;
+    try {
+      const tickets = search.trim()
+        ? await kdsApi.searchKdsTickets(search.trim())
+        : await kdsApi.getKdsTickets();
+      setOrders(tickets.map(mapKdsTicketToOrder));
+      setError(null);
+    } catch (err) {
+      const message = getErrorMessage(err);
+      setError(message);
+      if (toastOnLoadFailure) toast.error(message);
+    } finally {
+      setLoading(false);
+      initialLoadRef.current = false;
+    }
+  }, [search, toast]);
+
+  useEffect(() => {
+    loadTickets();
+    const id = setInterval(loadTickets, POLL_MS);
+    return () => clearInterval(id);
+  }, [loadTickets]);
 
   useEffect(() => {
     try {
@@ -58,51 +90,60 @@ export default function KDSPage() {
     }
   };
 
-  const advanceStage = useCallback((id: string) => {
-    setOrders((prev) =>
-      prev.map((o) => {
-        if (o.id !== id) return o;
-        const next: KDSStage =
-          o.stage === "to-cook" ? "preparing" : o.stage === "preparing" ? "ready" : "ready";
-        setAnnouncement(`Order ${o.id} moved to ${next === "preparing" ? "preparing" : "ready"}.`);
-        return { ...o, stage: next };
-      })
-    );
-  }, []);
+  const advanceStage = useCallback(async (id: string) => {
+    const order = orders.find((o) => o.id === id);
+    if (!order?.ticketId) return;
+    const next: KDSStage =
+      order.stage === "to-cook" ? "preparing" : order.stage === "preparing" ? "ready" : "ready";
+    try {
+      await kdsApi.updateKdsTicketStage(order.ticketId, kdsStageToApi(next));
+      toast.success(`Order ${order.id} moved to ${next === "preparing" ? "preparing" : "ready"}`);
+      setAnnouncement(`Order ${order.id} moved to ${next === "preparing" ? "preparing" : "ready"}.`);
+      await loadTickets();
+    } catch (err) {
+      toastApiError(toast, err);
+    }
+  }, [orders, loadTickets, toast]);
 
-  const moveOrder = useCallback((id: string, targetStage: KDSStage) => {
-    setOrders((prev) =>
-      prev.map((o) => {
-        if (o.id !== id) return o;
-        if (o.stage === targetStage) return o;
-        setAnnouncement(
-          `Order ${o.id} moved to ${targetStage === "to-cook" ? "to cook" : targetStage}.`
-        );
-        return { ...o, stage: targetStage };
-      })
-    );
-  }, []);
+  const moveOrder = useCallback(async (id: string, targetStage: KDSStage) => {
+    const order = orders.find((o) => o.id === id);
+    if (!order?.ticketId || order.stage === targetStage) return;
+    try {
+      await kdsApi.updateKdsTicketStage(order.ticketId, kdsStageToApi(targetStage));
+      toast.success(`Order ${order.id} moved to ${targetStage === "to-cook" ? "to cook" : targetStage}`);
+      setAnnouncement(
+        `Order ${order.id} moved to ${targetStage === "to-cook" ? "to cook" : targetStage}.`
+      );
+      await loadTickets();
+    } catch (err) {
+      toastApiError(toast, err);
+    }
+  }, [orders, loadTickets, toast]);
 
-  const dismissOrder = useCallback((id: string) => {
-    setOrders((prev) => {
-      const order = prev.find((o) => o.id === id);
-      if (order) setAnnouncement(`Order ${order.id} dismissed.`);
-      return prev.filter((o) => o.id !== id);
-    });
-  }, []);
+  const dismissOrder = useCallback(async (id: string) => {
+    const order = orders.find((o) => o.id === id);
+    if (!order?.ticketId) return;
+    try {
+      await kdsApi.updateKdsTicketStage(order.ticketId, "COMPLETED");
+      toast.success(`Order ${order.id} dismissed`);
+      setAnnouncement(`Order ${order.id} dismissed.`);
+      await loadTickets();
+    } catch (err) {
+      toastApiError(toast, err);
+    }
+  }, [orders, loadTickets, toast]);
 
-  const toggleItem = (orderId: string, itemId: number) => {
-    setOrders((prev) =>
-      prev.map((o) => {
-        if (o.id !== orderId) return o;
-        return {
-          ...o,
-          items: o.items.map((i) =>
-            i.id === itemId ? { ...i, done: !i.done } : i
-          ),
-        };
-      })
-    );
+  const toggleItem = async (orderId: string, itemId: number) => {
+    const order = orders.find((o) => o.id === orderId);
+    const item = order?.items.find((i) => i.id === itemId);
+    if (!item?.orderItemId || item.done) return;
+    try {
+      await kdsApi.completeOrderItem(item.orderItemId);
+      toast.success(`Item marked complete`);
+      await loadTickets();
+    } catch (err) {
+      toastApiError(toast, err);
+    }
   };
 
   const counts = useMemo(
@@ -171,6 +212,15 @@ export default function KDSPage() {
         {announcement}
       </div>
 
+      {error && (
+        <div className="mx-7 mt-4 flex items-center justify-between bg-danger/10 text-danger rounded-[12px] px-4 py-3 text-[13px] font-semibold">
+          <span>{error}</span>
+          <button type="button" onClick={() => { setError(null); loadTickets(); }} className="underline">
+            Retry
+          </button>
+        </div>
+      )}
+
       <KDSHeader counts={counts} filter={filter} onFilterChange={handleFilterChange} />
       <KDSToolbar
         search={search}
@@ -188,7 +238,11 @@ export default function KDSPage() {
             : "overflow-y-auto no-scrollbar"
         }`}
       >
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-kds-muted gap-3">
+            <p className="text-[16px] font-semibold text-kds-text">Loading kitchen tickets...</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-kds-muted gap-3">
             <span className="text-4xl" aria-hidden>🍳</span>
             <p className="text-[16px] font-semibold text-kds-text">Waiting for orders from POS</p>

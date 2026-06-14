@@ -20,7 +20,7 @@ export function PromotionsTable({
   return (
     <div className="w-full bg-surface border border-border-custom rounded-[20px] shadow-[0_1px_2px_rgba(0,0,0,0.03)] overflow-hidden theme-transition">
       <div className="overflow-x-auto w-full no-scrollbar">
-        <table className="w-full border-collapse text-left font-sans min-w-[720px]">
+        <table className="w-full border-collapse text-left font-sans min-w-[860px]">
           <thead>
             <tr className="bg-card-bg h-[48px] border-b border-border-custom theme-transition">
               <th className="px-6 py-2 text-[14px] font-medium text-text-heading select-none">
@@ -28,6 +28,9 @@ export function PromotionsTable({
               </th>
               <th className="px-6 py-2 text-[14px] font-medium text-text-heading select-none">
                 Scope
+              </th>
+              <th className="px-6 py-2 text-[14px] font-medium text-text-heading select-none">
+                Product
               </th>
               <th className="px-6 py-2 text-[14px] font-medium text-text-heading select-none">
                 Trigger
@@ -56,7 +59,11 @@ export function PromotionsTable({
                 </td>
 
                 <td className="px-6 py-3 text-[15px] font-medium text-text-heading">
-                  {formatPromotionTrigger(promotion.triggerType, promotion.triggerValue)}
+                  {promotion.productName ?? "—"}
+                </td>
+
+                <td className="px-6 py-3 text-[15px] font-medium text-text-heading">
+                  {formatPromotionTrigger(promotion)}
                 </td>
 
                 <td className="px-6 py-3">
@@ -82,7 +89,7 @@ export function PromotionsTable({
             {promotions.length === 0 && (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={6}
                   className="px-6 py-10 text-center text-[15px] font-medium text-text-muted"
                 >
                   No promotions found. Click &quot;+ New Promotion&quot; to add one!

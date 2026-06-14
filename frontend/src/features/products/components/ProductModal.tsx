@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Product, ProductFormData } from "@/lib/product-types";
+import { Product, ProductCategoryOption, ProductFormData } from "@/lib/product-types";
 import { X } from "lucide-react";
 
 interface ProductModalProps {
@@ -10,49 +10,49 @@ interface ProductModalProps {
   onClose: () => void;
   onSave: (product: ProductFormData) => void;
   product?: Product | null;
+  categories: ProductCategoryOption[];
 }
 
-const CATEGORIES: Product["category"][] = ["Espresso", "Cold Brew", "Pastries", "Sandwiches", "Tea"];
 const UOMS = ["Cup", "Can", "Piece", "Plate", "Bottle"];
 const TAXES = ["5%", "8%", "10%", "0%"];
 
-export function ProductModal({ isOpen, onClose, onSave, product }: ProductModalProps) {
+export function ProductModal({ isOpen, onClose, onSave, product, categories }: ProductModalProps) {
   const [name, setName] = useState("");
-  const [category, setCategory] = useState<Product["category"]>("Espresso");
+  const [categoryId, setCategoryId] = useState("");
   const [price, setPrice] = useState("");
   const [uom, setUom] = useState("Cup");
   const [tax, setTax] = useState("8%");
   const [active, setActive] = useState(true);
 
-  // Sync form state whenever the product prop changes (fixes bug: editing a
-  // second product would show the first product's stale data)
   useEffect(() => {
-    if (isOpen) {
-      setName(product?.name ?? "");
-      setCategory(product?.category ?? "Espresso");
-      setPrice(product?.price?.toString() ?? "");
-      setUom(product?.uom ?? "Cup");
-      setTax(product?.tax ?? "8%");
-      setActive(product?.active ?? true);
-    }
-  }, [isOpen, product]);
+    if (!isOpen) return;
+    setName(product ? product.name : "");
+    setCategoryId(
+      product?.categoryId ||
+        categories[0]?.id ||
+        ""
+    );
+    setPrice(product ? product.price.toString() : "");
+    setUom(product ? product.uom : "Cup");
+    setTax(product ? product.tax : "8%");
+    setActive(product ? product.active : true);
+  }, [isOpen, product, categories]);
 
   if (!isOpen || typeof document === "undefined") return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !price || isNaN(parseFloat(price))) return;
+    if (!name.trim() || !price || isNaN(parseFloat(price)) || !categoryId) return;
 
     onSave({
       id: product?.id,
       name: name.trim(),
-      category,
+      categoryId,
       price: parseFloat(price),
       uom,
       tax,
       active,
     });
-    onClose();
   };
 
   return createPortal(
@@ -95,18 +95,24 @@ export function ProductModal({ isOpen, onClose, onSave, product }: ProductModalP
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col">
               <label className="text-[13px] font-bold text-text-body mb-1.5 uppercase tracking-wider">
-                Category
+                Category *
               </label>
               <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as Product["category"])}
-                className="h-[42px] px-3.5 rounded-[10px] bg-white border border-border-custom text-[14px] font-semibold text-text-heading outline-none focus:border-primary transition-all cursor-pointer"
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                required
+                disabled={categories.length === 0}
+                className="h-[42px] px-3.5 rounded-[10px] bg-white border border-border-custom text-[14px] font-semibold text-text-heading outline-none focus:border-primary transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
+                {categories.length === 0 ? (
+                  <option value="">No categories — create one first</option>
+                ) : (
+                  categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 
@@ -194,7 +200,8 @@ export function ProductModal({ isOpen, onClose, onSave, product }: ProductModalP
             </button>
             <button
               type="submit"
-              className="h-[40px] px-5 rounded-[12px] bg-primary text-white text-[14px] font-bold hover:brightness-105 transition-all shadow-[0_2px_4px_rgba(201,120,58,0.2)] cursor-pointer select-none"
+              disabled={categories.length === 0}
+              className="h-[40px] px-5 rounded-[12px] bg-primary text-white text-[14px] font-bold hover:brightness-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_2px_4px_rgba(201,120,58,0.2)] cursor-pointer select-none"
             >
               Save Product
             </button>

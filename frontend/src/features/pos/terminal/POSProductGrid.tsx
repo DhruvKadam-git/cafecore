@@ -4,7 +4,7 @@ import { POSProductCard } from "./POSProductCard";
 interface POSProductGridProps {
   products: POSProduct[];
   onAdd: (product: POSProduct) => void;
-  cartQuantities: Record<number, number>; // productId → qty in cart
+  cartQuantities: Record<string, number>;
 }
 
 export function POSProductGrid({ products, onAdd, cartQuantities }: POSProductGridProps) {
