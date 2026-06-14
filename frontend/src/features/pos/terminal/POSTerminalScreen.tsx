@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { POSProduct } from "@/lib/pos-product-types";
 import { CartItem } from "@/lib/pos-order-utils";
 import { POSHeader } from "./POSHeader";
@@ -75,6 +75,16 @@ export function POSTerminalScreen() {
     setSelectedTable(null);
   };
 
+  // Build a productId → quantity lookup for the product grid highlights
+  const cartQuantities = useMemo(
+    () =>
+      cartItems.reduce<Record<number, number>>((acc, item) => {
+        acc[item.id] = item.quantity;
+        return acc;
+      }, {}),
+    [cartItems]
+  );
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#F5F1EB]">
       <POSHeader
@@ -89,10 +99,10 @@ export function POSTerminalScreen() {
       )}
 
       <div className="flex flex-1 min-h-0 overflow-hidden flex-col md:flex-row">
-        <div className="flex-[3] min-w-0 min-h-0 md:min-h-full">
-          <ProductCatalog onAddToCart={addToCart} />
+        <div className="flex-[3] min-w-0 min-h-0 md:min-h-full overflow-hidden">
+          <ProductCatalog onAddToCart={addToCart} cartQuantities={cartQuantities} />
         </div>
-        <div className="flex-[1] min-h-[320px] md:min-h-0 min-w-0 md:min-w-[300px] md:max-w-[370px] border-t md:border-t-0 border-[#D8CCC0]">
+        <div className="shrink-0 md:flex-[1] min-w-0 md:min-w-[300px] md:max-w-[370px] border-t md:border-t-0 border-[#D8CCC0] h-[45vh] md:h-auto">
           <OrderPanel
             items={cartItems}
             onUpdateQty={updateQty}

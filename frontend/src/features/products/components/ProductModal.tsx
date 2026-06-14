@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Product, ProductFormData } from "@/lib/product-types";
 import { X } from "lucide-react";
@@ -17,12 +17,25 @@ const UOMS = ["Cup", "Can", "Piece", "Plate", "Bottle"];
 const TAXES = ["5%", "8%", "10%", "0%"];
 
 export function ProductModal({ isOpen, onClose, onSave, product }: ProductModalProps) {
-  const [name, setName] = useState(product ? product.name : "");
-  const [category, setCategory] = useState<Product["category"]>(product ? product.category : "Espresso");
-  const [price, setPrice] = useState(product ? product.price.toString() : "");
-  const [uom, setUom] = useState(product ? product.uom : "Cup");
-  const [tax, setTax] = useState(product ? product.tax : "8%");
-  const [active, setActive] = useState(product ? product.active : true);
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState<Product["category"]>("Espresso");
+  const [price, setPrice] = useState("");
+  const [uom, setUom] = useState("Cup");
+  const [tax, setTax] = useState("8%");
+  const [active, setActive] = useState(true);
+
+  // Sync form state whenever the product prop changes (fixes bug: editing a
+  // second product would show the first product's stale data)
+  useEffect(() => {
+    if (isOpen) {
+      setName(product?.name ?? "");
+      setCategory(product?.category ?? "Espresso");
+      setPrice(product?.price?.toString() ?? "");
+      setUom(product?.uom ?? "Cup");
+      setTax(product?.tax ?? "8%");
+      setActive(product?.active ?? true);
+    }
+  }, [isOpen, product]);
 
   if (!isOpen || typeof document === "undefined") return null;
 
@@ -156,13 +169,15 @@ export function ProductModal({ isOpen, onClose, onSave, product }: ProductModalP
             </span>
             <button
               type="button"
+              role="switch"
+              aria-checked={active}
               onClick={() => setActive(!active)}
-              className={`relative inline-flex h-[26px] w-[48px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                active ? "bg-success" : "bg-border-custom/50"
+              className={`relative inline-flex shrink-0 cursor-pointer h-[26px] w-12 rounded-full p-[4px] transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+                active ? "bg-success" : "bg-border-custom"
               }`}
             >
               <span
-                className={`pointer-events-none inline-block h-[22px] w-[22px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                className={`block h-[18px] w-[18px] rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${
                   active ? "translate-x-[22px]" : "translate-x-0"
                 }`}
               />

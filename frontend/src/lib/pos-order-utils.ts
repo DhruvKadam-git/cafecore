@@ -8,10 +8,12 @@ export interface CartItem {
 
 export const TAX_RATE = 0.08;
 
+// Coupon codes — kept in sync with mock-marketing.ts INITIAL_COUPONS
+// BREW10 = 10% off, WELCOME5 = $5 off (fixed), VIP20 = 20% off
 export const COUPON_CODES: Record<string, number> = {
-  BREW10: 0.1,
-  CAFE20: 0.2,
-  SAVE5: 5,
+  BREW10:   0.10,  // 10% — percentage (value < 1)
+  WELCOME5: 5,     // $5 flat off — fixed (value ≥ 1)
+  VIP20:    0.20,  // 20% — percentage (value < 1)
 };
 
 export function calculateOrderTotals(

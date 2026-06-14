@@ -1,12 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import { ArrowRight, ChevronDown, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronDown, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import { AuthInput } from "./AuthInput";
 
 type SignUpRole = "Employee" | "Admin";
 
-export function SignUpPanel() {
+interface SignUpPanelProps {
+  onBackToSignIn: () => void;
+}
+
+export function SignUpPanel({ onBackToSignIn }: SignUpPanelProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,7 +44,7 @@ export function SignUpPanel() {
     <button
       type="button"
       onClick={() => setShowPassword((v) => !v)}
-      className="text-white/40 hover:text-white/70 transition-colors p-0.5"
+      className="text-text-muted hover:text-text-heading transition-colors p-0.5"
       aria-label={showPassword ? "Hide password" : "Show password"}
     >
       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -48,14 +52,27 @@ export function SignUpPanel() {
   );
 
   return (
-    <div className="bg-[#1E1812] px-8 py-9 sm:px-10 sm:py-10 flex flex-col">
+    <div className="px-8 py-9 sm:px-10 sm:py-10 flex flex-col bg-surface theme-transition">
+
+      {/* Header with back button */}
       <div className="mb-7">
-        <h2 className="text-[22px] font-bold text-white leading-tight">Create account</h2>
-        <p className="text-[14px] font-medium text-white/50 mt-1">
+        <button
+          type="button"
+          onClick={onBackToSignIn}
+          className="flex items-center gap-1.5 text-[13px] font-semibold text-text-muted hover:text-primary transition-colors mb-4"
+        >
+          <ArrowLeft size={15} strokeWidth={2.5} />
+          Back to sign in
+        </button>
+        <h2 className="text-[22px] font-bold text-text-heading leading-tight">
+          Create account
+        </h2>
+        <p className="text-[14px] font-medium text-text-muted mt-1">
           Register a new employee or admin
         </p>
       </div>
 
+      {/* Fields */}
       <div className="flex flex-col gap-4 mb-6">
         <AuthInput
           id="signup-name"
@@ -64,7 +81,6 @@ export function SignUpPanel() {
           value={name}
           onChange={setName}
           icon={User}
-          variant="dark"
           error={errors.name}
         />
         <AuthInput
@@ -75,7 +91,6 @@ export function SignUpPanel() {
           value={email}
           onChange={setEmail}
           icon={Mail}
-          variant="dark"
           error={errors.email}
         />
         <AuthInput
@@ -86,14 +101,16 @@ export function SignUpPanel() {
           value={password}
           onChange={setPassword}
           icon={Lock}
-          variant="dark"
           rightAction={passwordToggle}
           error={errors.password}
         />
 
         {/* Role dropdown */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="signup-role" className="text-[13px] font-semibold text-white/80">
+          <label
+            htmlFor="signup-role"
+            className="text-[13px] font-semibold text-text-heading"
+          >
             Role
           </label>
           <div className="relative">
@@ -101,36 +118,46 @@ export function SignUpPanel() {
               id="signup-role"
               value={role}
               onChange={(e) => setRole(e.target.value as SignUpRole)}
-              className="w-full appearance-none rounded-[12px] pl-4 pr-10 py-3 text-[14px] font-medium bg-white/8 border border-white/15 text-white outline-none transition-all duration-150 focus:border-white/30 focus:ring-2 focus:ring-white/10 cursor-pointer"
+              className="w-full appearance-none rounded-[12px] pl-4 pr-10 py-3 text-[14px] font-medium bg-background border border-border-custom text-text-heading outline-none transition-all duration-150 focus:border-primary focus:ring-2 focus:ring-primary/15 cursor-pointer theme-transition"
             >
-              <option value="Employee" className="bg-[#2C2118] text-white">Employee</option>
-              <option value="Admin" className="bg-[#2C2118] text-white">Admin</option>
+              <option value="Employee">Employee</option>
+              <option value="Admin">Admin</option>
             </select>
             <ChevronDown
               size={16}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
             />
           </div>
         </div>
       </div>
 
+      {/* Success message */}
       {success && (
         <p className="text-[13px] font-semibold text-success mb-4 bg-success/10 border border-success/20 rounded-[10px] px-3 py-2.5">
-          Account created successfully! You can sign in on the left.
+          ✓ Account created! You can now sign in.
         </p>
       )}
 
+      {/* Sign up button */}
       <button
         type="button"
         onClick={handleSignUp}
-        className="w-full flex items-center justify-center gap-2 bg-success hover:brightness-105 text-white text-[15px] font-bold py-3.5 rounded-[12px] transition-all duration-150 active:scale-[0.98] shadow-sm"
+        className="w-full flex items-center justify-center gap-2 bg-primary hover:brightness-105 text-white text-[15px] font-bold py-3.5 rounded-[12px] transition-all duration-150 active:scale-[0.98] shadow-sm"
       >
-        Sign Up
+        Create Account
         <ArrowRight size={18} strokeWidth={2.5} />
       </button>
 
-      <p className="text-[12px] font-medium text-white/40 text-center mt-6">
-        Already have an account? Sign in on the left.
+      {/* Back link */}
+      <p className="text-[13px] font-medium text-text-muted text-center mt-5">
+        Already have an account?{" "}
+        <button
+          type="button"
+          onClick={onBackToSignIn}
+          className="font-bold text-primary hover:brightness-110 transition-colors"
+        >
+          Sign in
+        </button>
       </p>
     </div>
   );

@@ -173,10 +173,12 @@ export function PaymentForm({ mode, initial, existingNames, onSave, onCancel }: 
             </div>
             <button
               type="button"
+              role="switch"
+              aria-checked={active}
               onClick={() => setActive(a => !a)}
-              className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${active ? "bg-success" : "bg-border-custom"}`}
+              className={`relative inline-flex shrink-0 cursor-pointer h-[26px] w-12 rounded-full p-[4px] transition-colors duration-200 ${active ? "bg-success" : "bg-border-custom"}`}
             >
-              <span className={`absolute top-0.5 w-5 h-5 bg-input rounded-full shadow transition-transform duration-200 ${active ? "translate-x-6" : "translate-x-0.5"}`} />
+              <span className={`block h-[18px] w-[18px] rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${active ? "translate-x-[22px]" : "translate-x-0"}`} />
             </button>
           </div>
 

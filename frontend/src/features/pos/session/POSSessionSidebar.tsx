@@ -35,7 +35,7 @@ export function POSSessionSidebar() {
               aria-label={label}
               className={`w-11 h-11 flex items-center justify-center rounded-[16px] transition-all duration-200 ${
                 isActive
-                  ? "bg-[#4F46E5] text-white shadow-md"
+                  ? "bg-[#D17A3B] text-white shadow-md"
                   : "text-white/60 hover:bg-[#2A2726] hover:text-white"
               }`}
             >

@@ -17,6 +17,7 @@ const pageTitles: Record<string, string> = {
   "/reports":   "Reports",
   "/pos":       "POS Terminal",
   "/kds":       "Kitchen KDS",
+  "/ask-ai":    "Ask Cafe AI",
 };
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {

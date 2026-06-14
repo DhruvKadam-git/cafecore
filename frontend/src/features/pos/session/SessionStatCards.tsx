@@ -14,7 +14,7 @@ export function SessionStatCards({ stats }: SessionStatCardsProps) {
           <span className="text-[12px] font-medium text-[#7A6E63]">Closing amount</span>
         </div>
         <p className="text-[22px] font-bold text-[#769E4D] leading-none">
-          ₹{stats.closingAmount.toLocaleString("en-IN")}
+          ${stats.closingAmount.toLocaleString()}
         </p>
       </div>
 

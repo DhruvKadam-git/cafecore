@@ -24,18 +24,28 @@ const monthlyData: DataPoint[] = [
 type Mode = "weekly" | "monthly";
 type Metric = "revenue" | "orders";
 
+// Map period filter → chart mode
+const periodToMode: Record<string, Mode> = {
+  "Today":      "weekly",
+  "This Week":  "weekly",
+  "This Month": "monthly",
+  "Custom":     "monthly",
+};
+
 const SVG_H = 200;
 const P_L = 42;
 const P_R = 8;
 const P_T = 16;
 const P_B = 28;
 
-export function RevenueChart() {
-  const [mode, setMode] = useState<Mode>("weekly");
+export function RevenueChart({ period = "This Week" }: { period?: string }) {
   const [metric, setMetric] = useState<Metric>("revenue");
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [svgW, setSvgW] = useState(620);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Sync mode with the external period filter
+  const mode: Mode = periodToMode[period] ?? "weekly";
 
   useEffect(() => {
     const el = containerRef.current;
@@ -106,18 +116,9 @@ export function RevenueChart() {
               </button>
             ))}
           </div>
-          <div className="flex bg-surface rounded-[12px] p-1 gap-1 theme-transition">
-            {(["weekly", "monthly"] as Mode[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMode(m)}
-                className={`px-3 py-1 rounded-[10px] text-[13px] font-semibold transition-all capitalize ${mode === m ? "bg-white text-primary shadow-sm" : "text-text-muted hover:text-text-body"}`}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
+          <span className="text-[12px] font-semibold text-text-muted px-2 py-1 bg-surface rounded-[10px] theme-transition capitalize">
+            {period}
+          </span>
         </div>
       </div>
 

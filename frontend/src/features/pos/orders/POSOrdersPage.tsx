@@ -57,8 +57,13 @@ export function POSOrdersPage() {
           activeFilter={activeFilter}
           onFilterChange={setActiveFilter}
         />
-        <OrdersTable orders={filteredOrders} onSelectOrder={setSelectedOrder} />
-        <OrdersCardList orders={filteredOrders} onSelectOrder={setSelectedOrder} />
+        {/* Responsive: table on sm+, card list below sm — only one mounted at a time */}
+        <div className="hidden sm:block">
+          <OrdersTable orders={filteredOrders} onSelectOrder={setSelectedOrder} />
+        </div>
+        <div className="sm:hidden">
+          <OrdersCardList orders={filteredOrders} onSelectOrder={setSelectedOrder} />
+        </div>
       </div>
 
       {selectedOrder && (

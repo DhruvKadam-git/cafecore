@@ -4,9 +4,10 @@ import { POSProductCard } from "./POSProductCard";
 interface POSProductGridProps {
   products: POSProduct[];
   onAdd: (product: POSProduct) => void;
+  cartQuantities: Record<number, number>; // productId → qty in cart
 }
 
-export function POSProductGrid({ products, onAdd }: POSProductGridProps) {
+export function POSProductGrid({ products, onAdd, cartQuantities }: POSProductGridProps) {
   if (products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-[#8E7A68]">
@@ -19,7 +20,12 @@ export function POSProductGrid({ products, onAdd }: POSProductGridProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 content-start">
       {products.map((product) => (
-        <POSProductCard key={product.id} product={product} onAdd={onAdd} />
+        <POSProductCard
+          key={product.id}
+          product={product}
+          onAdd={onAdd}
+          cartQty={cartQuantities[product.id] ?? 0}
+        />
       ))}
     </div>
   );

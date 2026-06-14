@@ -9,9 +9,10 @@ import { POSProductGrid } from "./POSProductGrid";
 
 interface ProductCatalogProps {
   onAddToCart: (product: POSProduct) => void;
+  cartQuantities: Record<number, number>; // productId → qty in cart
 }
 
-export function ProductCatalog({ onAddToCart }: ProductCatalogProps) {
+export function ProductCatalog({ onAddToCart, cartQuantities }: ProductCatalogProps) {
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
 
@@ -32,7 +33,11 @@ export function ProductCatalog({ onAddToCart }: ProductCatalogProps) {
         onChange={setActiveCategory}
       />
       <div className="flex-1 min-h-0 overflow-y-auto pos-terminal-scrollbar pr-1">
-        <POSProductGrid products={filtered} onAdd={onAddToCart} />
+        <POSProductGrid
+          products={filtered}
+          onAdd={onAddToCart}
+          cartQuantities={cartQuantities}
+        />
       </div>
     </div>
   );

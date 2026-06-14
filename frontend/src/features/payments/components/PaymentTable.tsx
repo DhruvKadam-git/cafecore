@@ -83,10 +83,12 @@ export function PaymentTable({ methods, onEdit, onDelete, onToggleActive }: Paym
             <div className="flex justify-center">
               <button
                 type="button"
+                role="switch"
+                aria-checked={m.active}
                 onClick={() => onToggleActive(m.id)}
-                className={`relative inline-flex items-center w-10 h-[22px] rounded-full transition-colors duration-200 shrink-0 ${m.active ? "bg-success" : "bg-border-custom"}`}
+                className={`relative inline-flex shrink-0 cursor-pointer h-[26px] w-12 rounded-full p-[4px] transition-colors duration-200 ${m.active ? "bg-success" : "bg-border-custom"}`}
               >
-                <span className={`absolute left-[3px] w-4 h-4 bg-input rounded-full shadow-sm transition-transform duration-200 ${m.active ? "translate-x-[18px]" : "translate-x-0"}`} />
+                <span className={`block h-[18px] w-[18px] rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${m.active ? "translate-x-[22px]" : "translate-x-0"}`} />
               </button>
             </div>
 

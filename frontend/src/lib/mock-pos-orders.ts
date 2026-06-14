@@ -9,12 +9,12 @@ export const MOCK_POS_ORDERS: POSOrder[] = [
     customer: "Lena Morrison",
     table: "Table 3",
     employee: "Jamie S.",
-    amount: 27.5,
+    amount: 23.5,   // 4.50 + 3.50×2 + 12.00 = 23.50
     status: "Paid",
-    tax: 2.2,
+    tax: 1.88,
     lineItems: [
-      { id: "1", name: "Cappuccino", quantity: 1, price: 4.5, emoji: "☕" },
-      { id: "2", name: "Croissant", quantity: 2, price: 3.5, emoji: "🥐" },
+      { id: "1", name: "Cappuccino",    quantity: 1, price: 4.5,  emoji: "☕" },
+      { id: "2", name: "Croissant",     quantity: 2, price: 3.5,  emoji: "🥐" },
       { id: "3", name: "Avocado Toast", quantity: 1, price: 12.0, emoji: "🥑" },
     ],
   },
@@ -139,10 +139,10 @@ export const MOCK_POS_ORDERS: POSOrder[] = [
     customer: "Tom Bradley",
     table: "Table 1",
     employee: "Jamie S.",
-    amount: 22.0,
+    amount: 9.5,   // 3.00 + 6.50 = 9.50
     status: "Cancelled",
     lineItems: [
-      { id: "1", name: "Drip Coffee", quantity: 1, price: 3.0, emoji: "☕" },
+      { id: "1", name: "Drip Coffee",          quantity: 1, price: 3.0, emoji: "☕" },
       { id: "2", name: "Bagel & Cream Cheese", quantity: 1, price: 6.5, emoji: "🥯" },
     ],
   },

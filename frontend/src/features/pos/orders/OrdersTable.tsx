@@ -11,7 +11,7 @@ interface OrdersTableProps {
 
 export function OrdersTable({ orders, onSelectOrder }: OrdersTableProps) {
   return (
-    <div className="hidden sm:block overflow-x-auto w-full">
+    <div className="overflow-x-auto w-full">
       <table className="w-full border-collapse text-left font-sans min-w-[720px]">
         <thead>
           <tr className="h-12 border-b border-border-custom theme-transition">

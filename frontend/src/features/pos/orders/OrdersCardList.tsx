@@ -12,14 +12,14 @@ interface OrdersCardListProps {
 export function OrdersCardList({ orders, onSelectOrder }: OrdersCardListProps) {
   if (orders.length === 0) {
     return (
-      <div className="sm:hidden py-16 text-center text-text-muted text-[14px] font-semibold">
+      <div className="py-16 text-center text-text-muted text-[14px] font-semibold">
         No orders match your search or filter.
       </div>
     );
   }
 
   return (
-    <div className="sm:hidden flex flex-col gap-3">
+    <div className="flex flex-col gap-3">
       {orders.map((order) => (
         <button
           key={order.id}

@@ -14,6 +14,7 @@ interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: BookingFormData) => void;
+  booking?: Booking | null; // if provided → edit mode
 }
 
 const inputClass =
@@ -21,7 +22,7 @@ const inputClass =
 
 const labelClass = "text-[14px] font-medium text-text-heading mb-1.5";
 
-export function BookingModal({ isOpen, onClose, onSave }: BookingModalProps) {
+export function BookingModal({ isOpen, onClose, onSave, booking }: BookingModalProps) {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -35,18 +36,35 @@ export function BookingModal({ isOpen, onClose, onSave }: BookingModalProps) {
 
   useEffect(() => {
     if (isOpen) {
-      setDate("2026-06-15");
-      setTime("19:00");
-      setCustomerName("");
-      setPartySize("2");
-      setTable("Table 5");
-      setNotes("");
-      setStatus("pending");
+      if (booking) {
+        // Edit mode — pre-fill with existing booking data
+        setDate(booking.date);
+        setTime(booking.time);
+        setCustomerName(booking.customerName);
+        setPartySize(String(booking.partySize));
+        setTable(booking.table);
+        setNotes(booking.notes ?? "");
+        setStatus(booking.status);
+      } else {
+        // Create mode — default to tomorrow at 7 PM
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const yyyy = tomorrow.getFullYear();
+        const mm = String(tomorrow.getMonth() + 1).padStart(2, "0");
+        const dd = String(tomorrow.getDate()).padStart(2, "0");
+        setDate(`${yyyy}-${mm}-${dd}`);
+        setTime("19:00");
+        setCustomerName("");
+        setPartySize("2");
+        setTable("Table 5");
+        setNotes("");
+        setStatus("pending");
+      }
       setNameError("");
       setPartySizeError("");
       setDateTimeError("");
     }
-  }, [isOpen]);
+  }, [isOpen, booking]);
 
   if (!isOpen || typeof document === "undefined") return null;
 
@@ -75,6 +93,7 @@ export function BookingModal({ isOpen, onClose, onSave }: BookingModalProps) {
     }
 
     onSave({
+      id: booking?.id,
       date,
       time,
       customerName: trimmedName,
@@ -96,7 +115,9 @@ export function BookingModal({ isOpen, onClose, onSave }: BookingModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="h-[68px] px-6 flex items-center justify-between border-b border-border-custom">
-          <h2 className="text-[24px] font-bold text-text-heading">New Booking</h2>
+          <h2 className="text-[24px] font-bold text-text-heading">
+            {booking ? "Edit Booking" : "New Booking"}
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -239,7 +260,7 @@ export function BookingModal({ isOpen, onClose, onSave }: BookingModalProps) {
               type="submit"
               className="flex-1 h-[44px] rounded-[12px] bg-primary text-white text-[15px] font-semibold hover:brightness-[1.04] transition-all cursor-pointer"
             >
-              Create Booking
+              {booking ? "Save Changes" : "Create Booking"}
             </button>
           </div>
         </form>

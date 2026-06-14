@@ -296,10 +296,13 @@ export function ProductModal({
               <p className="text-[12px] text-text-muted">Active products appear in the POS</p>
             </div>
             <button
+              type="button"
+              role="switch"
+              aria-checked={status === "Active"}
               onClick={() => setStatus(s => s === "Active" ? "Inactive" : "Active")}
-              className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${status === "Active" ? "bg-success" : "bg-border-custom"}`}
+              className={`relative inline-flex shrink-0 cursor-pointer h-[26px] w-12 rounded-full p-[4px] transition-colors duration-200 ${status === "Active" ? "bg-success" : "bg-border-custom"}`}
             >
-              <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${status === "Active" ? "translate-x-6" : "translate-x-0.5"}`} />
+              <span className={`block h-[18px] w-[18px] rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${status === "Active" ? "translate-x-[22px]" : "translate-x-0"}`} />
             </button>
           </div>
 

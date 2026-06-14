@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Pencil } from "lucide-react";
 import {
   Booking,
   BookingStatus,
@@ -15,12 +16,14 @@ interface BookingTableProps {
   bookings: Booking[];
   onStatusChange: (id: string, status: BookingStatus) => void;
   onDelete: (id: string) => void;
+  onEdit: (booking: Booking) => void;
 }
 
 export function BookingTable({
   bookings,
   onStatusChange,
   onDelete,
+  onEdit,
 }: BookingTableProps) {
   return (
     <div className="w-full bg-surface border border-border-custom rounded-[20px] shadow-[0_1px_2px_rgba(0,0,0,0.03)] theme-transition">
@@ -86,7 +89,15 @@ export function BookingTable({
                 </td>
 
                 <td className="px-6 py-2 text-right">
-                  <div className="flex items-center justify-end">
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(booking)}
+                      title="Edit Booking"
+                      className="w-8 h-8 flex items-center justify-center rounded-[10px] text-text-muted hover:text-primary hover:bg-primary/10 transition-colors"
+                    >
+                      <Pencil size={15} />
+                    </button>
                     <DeleteActionButton
                       onDelete={() => onDelete(booking.id)}
                       title="Delete Booking"

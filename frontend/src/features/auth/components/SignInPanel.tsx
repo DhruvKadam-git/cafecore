@@ -8,7 +8,11 @@ import { AuthInput } from "./AuthInput";
 
 type LoginRole = "Employee" | "Admin";
 
-export function SignInPanel() {
+interface SignInPanelProps {
+  onCreateAccount: () => void;
+}
+
+export function SignInPanel({ onCreateAccount }: SignInPanelProps) {
   const router = useRouter();
   const [role, setRole] = useState<LoginRole>("Employee");
   const [email, setEmail] = useState("");
@@ -31,14 +35,17 @@ export function SignInPanel() {
   );
 
   return (
-    <div className="bg-white px-8 py-9 sm:px-10 sm:py-10 flex flex-col">
+    <div className="px-8 py-9 sm:px-10 sm:py-10 flex flex-col bg-surface theme-transition">
+      {/* Header */}
       <div className="mb-7">
         <h2 className="text-[22px] font-bold text-text-heading leading-tight">Sign in</h2>
-        <p className="text-[14px] font-medium text-text-muted mt-1">Access your POS session</p>
+        <p className="text-[14px] font-medium text-text-muted mt-1">
+          Access your POS session
+        </p>
       </div>
 
       {/* Role toggle */}
-      <div className="flex rounded-full bg-[#F0EBE3] p-1 mb-6">
+      <div className="flex rounded-full bg-background border border-border-custom p-1 mb-6 theme-transition">
         {(["Employee", "Admin"] as LoginRole[]).map((r) => (
           <button
             key={r}
@@ -55,7 +62,8 @@ export function SignInPanel() {
         ))}
       </div>
 
-      <div className="flex flex-col gap-4 mb-2">
+      {/* Fields */}
+      <div className="flex flex-col gap-4 mb-6">
         <AuthInput
           id="signin-email"
           type="email"
@@ -64,7 +72,6 @@ export function SignInPanel() {
           value={email}
           onChange={setEmail}
           icon={Mail}
-          variant="light"
         />
         <AuthInput
           id="signin-password"
@@ -74,20 +81,11 @@ export function SignInPanel() {
           value={password}
           onChange={setPassword}
           icon={Lock}
-          variant="light"
           rightAction={passwordToggle}
         />
       </div>
 
-      <div className="flex justify-end mb-6">
-        <button
-          type="button"
-          className="text-[13px] font-semibold text-primary hover:brightness-110 transition-colors"
-        >
-          Forgot password?
-        </button>
-      </div>
-
+      {/* Login button */}
       <button
         type="button"
         onClick={handleLogin}
@@ -97,9 +95,21 @@ export function SignInPanel() {
         <ArrowRight size={18} strokeWidth={2.5} />
       </button>
 
+      {/* Create account link */}
+      <p className="text-[13px] font-medium text-text-muted text-center mt-5">
+        Don&apos;t have an account?{" "}
+        <button
+          type="button"
+          onClick={onCreateAccount}
+          className="font-bold text-primary hover:brightness-110 transition-colors"
+        >
+          Create account
+        </button>
+      </p>
+
       {/* Demo quick access */}
-      <div className="mt-8 pt-6 border-t border-[#E8DDD0]">
-        <p className="text-[12px] font-semibold text-text-muted text-center mb-3 tracking-wide">
+      <div className="mt-6 pt-6 border-t border-border-custom">
+        <p className="text-[12px] font-semibold text-text-muted text-center mb-3 tracking-wide uppercase">
           Demo quick access
         </p>
         <div className="flex gap-2.5">
@@ -111,7 +121,7 @@ export function SignInPanel() {
             <Link
               key={label}
               href={href}
-              className="flex-1 text-center py-2.5 rounded-[10px] border border-[#E0D5C8] text-[13px] font-bold text-text-heading hover:border-primary hover:bg-primary/5 transition-all duration-150"
+              className="flex-1 text-center py-2.5 rounded-[10px] border border-border-custom text-[13px] font-bold text-text-heading hover:border-primary hover:bg-primary/8 transition-all duration-150 theme-transition"
             >
               {label}
             </Link>
