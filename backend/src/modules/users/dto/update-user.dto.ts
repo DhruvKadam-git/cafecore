@@ -21,4 +21,9 @@ export class UpdateUserDto {
   @IsOptional()
   @IsEnum(UserRole)
   role?: UserRole;
+
+  @ApiProperty({ example: 'ACTIVE', required: false })
+  @IsOptional()
+  status?: string;
 }
+

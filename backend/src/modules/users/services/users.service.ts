@@ -110,6 +110,10 @@ export class UsersService {
     if (updateUserDto.name) dataToUpdate.name = updateUserDto.name;
     if (updateUserDto.email) dataToUpdate.email = updateUserDto.email;
     if (updateUserDto.role) dataToUpdate.role = updateUserDto.role;
+    if (updateUserDto.status) dataToUpdate.status = updateUserDto.status.toUpperCase();
+    if (updateUserDto.password) {
+      dataToUpdate.passwordHash = await bcrypt.hash(updateUserDto.password, 10);
+    }
 
     return this.prisma.user.update({
       where: { id },

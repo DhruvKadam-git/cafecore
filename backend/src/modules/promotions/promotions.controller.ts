@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { PromotionsService } from './services/promotions.service';
 import { CreatePromotionDto } from './dto/create-promotion.dto';
@@ -25,6 +26,12 @@ export class PromotionsController {
   @ApiOperation({ summary: 'Get all promotions' })
   async findAll() {
     return this.promotionsService.findAll();
+  }
+
+  @Get('generate-ai')
+  @ApiOperation({ summary: 'Generate AI promotion recommendation based on slow moving products and inventory' })
+  async generateAIPromotion(@Query('exclude') exclude?: string) {
+    return this.promotionsService.generateAIPromotion(exclude);
   }
 
   @Get(':id')

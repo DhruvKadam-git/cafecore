@@ -11,11 +11,11 @@ import {
   Ticket,
   Calendar,
   Users,
-  Monitor,
   BarChart3,
   ShoppingBag,
   ChefHat,
   X,
+  Bot,
   LucideIcon
 } from "lucide-react";
 
@@ -30,6 +30,16 @@ interface NavItem {
   icon: LucideIcon;
 }
 
+const navLinkClass = (isActive: boolean) =>
+  `flex items-center gap-3 h-[48px] px-4 rounded-[14px] text-[15px] font-medium transition-all duration-200 theme-transition ${
+    isActive
+      ? "bg-sidebar-active-bg text-sidebar-active-text font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.12)]"
+      : "text-white/85 hover:bg-white/10 hover:text-white"
+  }`;
+
+const navIconClass = (isActive: boolean) =>
+  isActive ? "text-sidebar-active-icon" : "text-white/80";
+
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
@@ -41,8 +51,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { label: "Coupons & Promos", href: "/coupons", icon: Ticket },
     { label: "Bookings", href: "/bookings", icon: Calendar },
     { label: "Users", href: "/users", icon: Users },
-    { label: "KDS Config", href: "/kds-config", icon: Monitor },
+    // { label: "KDS Config", href: "/kds-config", icon: Monitor },
     { label: "Reports", href: "/reports", icon: BarChart3 },
+    { label: "Ask Cafe AI", href: "/ask-ai", icon: Bot },
   ];
 
   const bottomNavItems: NavItem[] = [
@@ -62,7 +73,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed left-0 top-4 bottom-4 h-[calc(100vh-32px)] w-[275px] bg-[#866443] text-white/90 z-50 flex flex-col justify-between py-6 px-4 transition-transform duration-300 ease-in-out border-tr-[22px] border-br-[22px] rounded-r-[22px] shadow-lg lg:translate-x-0 ${
+        className={`fixed left-0 top-4 bottom-4 h-[calc(100vh-32px)] w-[275px] bg-sidebar-bg text-white/90 z-50 flex flex-col justify-between py-6 px-4 transition-transform duration-300 ease-in-out border-tr-[22px] border-br-[22px] rounded-r-[22px] shadow-lg lg:translate-x-0 theme-transition ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -77,6 +88,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </Link>
             {/* Close button for mobile drawer */}
             <button
+              type="button"
               onClick={onClose}
               className="lg:hidden p-1.5 rounded-full hover:bg-white/10 text-white/80 transition-colors"
             >
@@ -94,16 +106,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className={`flex items-center gap-3 h-[48px] px-4 rounded-[14px] text-[15px] font-medium transition-all duration-200 ${
-                    isActive
-                      ? "bg-[#9B6A3D] text-[#D77F3A] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
-                      : "text-white/85 hover:bg-white/8 hover:text-white"
-                  }`}
+                  className={navLinkClass(isActive)}
                 >
                   <Icon
                     size={20}
                     strokeWidth={1.75}
-                    className={isActive ? "text-[#D77F3A]" : "text-white/80"}
+                    className={navIconClass(isActive)}
                   />
                   <span>{item.label}</span>
                 </Link>
@@ -124,16 +132,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className={`flex items-center gap-3 h-[48px] px-4 rounded-[14px] text-[15px] font-medium transition-all duration-200 ${
-                    isActive
-                      ? "bg-[#9B6A3D] text-[#D77F3A] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
-                      : "text-white/85 hover:bg-white/8 hover:text-white"
-                  }`}
+                  className={navLinkClass(isActive)}
                 >
                   <Icon
                     size={20}
                     strokeWidth={1.75}
-                    className={isActive ? "text-[#D77F3A]" : "text-white/80"}
+                    className={navIconClass(isActive)}
                   />
                   <span>{item.label}</span>
                 </Link>
@@ -141,12 +145,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             })}
           </div>
 
-          {/* Cookie button */}
-          <div className="px-2 mt-2">
-            <button className="w-full bg-[#1b1510]/30 hover:bg-[#1b1510]/50 text-white/70 hover:text-white text-[12px] py-2 px-3 rounded-[10px] transition-colors duration-200 text-left whitespace-nowrap">
-              Manage cookies or opt out
-            </button>
-          </div>
         </div>
       </aside>
     </>

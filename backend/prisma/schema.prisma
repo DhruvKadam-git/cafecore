@@ -21,13 +21,18 @@ enum UserStatus {
 }
 
 enum OrderStatus {
-  PENDING
-  CONFIRMED
+  DRAFT
+  SENT_TO_KITCHEN
   PREPARING
-  READY
-  SERVED
   COMPLETED
+  PAID
   CANCELLED
+}
+
+enum KdsItemStatus {
+  PENDING
+  PREPARING
+  COMPLETED
 }
 
 enum PaymentStatus {
@@ -50,6 +55,17 @@ enum PromotionType {
   BOGO
 }
 
+enum TableStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+}
+
+enum SessionStatus {
+  OPEN
+  CLOSED
+}
+
 model User {
   id            String      @id @default(uuid())
   name          String
@@ -59,102 +75,143 @@ model User {
   status        UserStatus  @default(ACTIVE)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+  sessions      Session[]
+  orders        Order[]
 
   @@map("users")
 }
 
 model Category {
-  id          String    @id @default(uuid())
-  name        String
-  description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  products    Product[]
+  id        String    @id @default(uuid())
+  name      String    @unique
+  color     String?
+  imageUrl  String?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
 
   @@map("categories")
 }
 
 model Product {
-  id          String    @id @default(uuid())
-  name        String
-  description String?
-  price       Float
-  categoryId  String
-  stock       Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  category    Category  @relation(fields: [categoryId], references: [id])
-  orderItems  OrderItem[]
+  id              String      @id @default(uuid())
+  categoryId      String
+  category        Category    @relation(fields: [categoryId], references: [id])
+  name            String
+  description     String?
+  imageUrl        String?
+  price           Decimal     @db.Decimal(10, 2)
+  taxRate         Decimal     @db.Decimal(5, 2)
+  unitOfMeasure   String?
+  preparationTime Int?
+  isKdsVisible    Boolean     @default(true)
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  orderItems      OrderItem[]
 
+  @@index([categoryId])
   @@map("products")
 }
 
 model Floor {
   id          String    @id @default(uuid())
-  name        String
-  description String?
-  floorNumber Int
+  name        String    @unique
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  tables      Table[]
+  tables      RestaurantTable[]
 
+  @@index([isActive])
   @@map("floors")
 }
 
-model Table {
-  id          String    @id @default(uuid())
-  name        String
-  floorId     String
-  capacity    Int
-  description String?
-  status      String    @default("available")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  floor       Floor     @relation(fields: [floorId], references: [id])
-  orders      Order[]
+model RestaurantTable {
+  id            String      @id @default(uuid())
+  floorId       String
+  floor         Floor       @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  tableNumber   String
+  seats         Int
+  status        TableStatus @default(AVAILABLE)
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  orders        Order[]
 
-  @@map("tables")
+  @@unique([floorId, tableNumber])
+  @@index([floorId])
+  @@index([status])
+  @@map("restaurant_tables")
 }
 
 model Customer {
-  id        String    @id @default(uuid())
-  name      String
-  email     String
-  phone     String?
-  address   String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  orders    Order[]
+  id            String    @id @default(uuid())
+  name          String
+  email         String?
+  phoneNumber   String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  orders        Order[]
 
+  @@index([name])
+  @@index([email])
   @@map("customers")
 }
 
 model Order {
-  id          String        @id @default(uuid())
-  customerId  String?
-  tableId     String?
-  status      OrderStatus   @default(PENDING)
-  notes       String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  customer    Customer?     @relation(fields: [customerId], references: [id])
-  table       Table?        @relation(fields: [tableId], references: [id])
-  items       OrderItem[]
-  payment     Payment?
+  id                String        @id @default(uuid())
+  orderNumber       String        @unique
+  sessionId         String
+  session           Session       @relation(fields: [sessionId], references: [id])
+  tableId           String
+  table             RestaurantTable @relation(fields: [tableId], references: [id])
+  customerId        String?
+  customer          Customer?     @relation(fields: [customerId], references: [id])
+  createdByUserId   String
+  createdByUser     User          @relation(fields: [createdByUserId], references: [id])
+  status            OrderStatus   @default(DRAFT)
+  subtotal          Decimal       @db.Decimal(10, 2)
+  taxTotal          Decimal       @db.Decimal(10, 2)
+  discountTotal     Decimal       @db.Decimal(10, 2)
+  grandTotal        Decimal       @db.Decimal(10, 2)
+  notes             String?
+  sentToKitchenAt   DateTime?
+  paidAt            DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  orderItems        OrderItem[]
+  payments          Payment[]
 
+  @@index([sessionId])
+  @@index([tableId])
+  @@index([customerId])
+  @@index([createdByUserId])
+  @@index([status])
   @@map("orders")
 }
 
 model OrderItem {
-  id        String    @id @default(uuid())
-  orderId   String
-  productId String
-  quantity  Int
-  unitPrice Float
-  createdAt DateTime  @default(now())
-  order     Order     @relation(fields: [orderId], references: [id])
-  product   Product   @relation(fields: [productId], references: [id])
+  id                    String        @id @default(uuid())
+  orderId               String
+  order                 Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId             String
+  product               Product       @relation(fields: [productId], references: [id])
+  productNameSnapshot   String
+  unitPriceSnapshot     Decimal       @db.Decimal(10, 2)
+  taxRateSnapshot       Decimal       @db.Decimal(5, 2)
+  quantity              Int
+  lineSubtotal          Decimal       @db.Decimal(10, 2)
+  lineTax               Decimal       @db.Decimal(10, 2)
+  lineDiscount          Decimal       @db.Decimal(10, 2)
+  lineTotal             Decimal       @db.Decimal(10, 2)
+  kdsStatus             KdsItemStatus @default(PENDING)
+  createdAt             DateTime      @default(now())
 
+  @@index([orderId])
+  @@index([productId])
   @@map("order_items")
 }
 
@@ -202,13 +259,21 @@ model Promotion {
 }
 
 model Session {
-  id        String    @id @default(uuid())
-  userId    String?
-  description String?
-  status    String    @default("active")
-  closedAt  DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id                String         @id @default(uuid())
+  openedByUserId    String
+  openedByUser      User           @relation(fields: [openedByUserId], references: [id])
+  status            SessionStatus  @default(OPEN)
+  openingAmount     Decimal?       @db.Decimal(10, 2)
+  closingAmount     Decimal?       @db.Decimal(10, 2)
+  totalSales        Decimal?       @db.Decimal(10, 2)
+  totalOrders       Int            @default(0)
+  openedAt          DateTime       @default(now())
+  closedAt          DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  orders            Order[]
 
+  @@index([status])
+  @@index([openedByUserId])
   @@map("sessions")
 }

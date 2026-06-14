@@ -19,6 +19,7 @@ export interface KDSOrder {
   items: KDSItem[];
   sentAt: string;
   elapsed: number; // minutes
+  completedAt?: string;
 }
 
 interface KDSTicketProps {
@@ -28,15 +29,15 @@ interface KDSTicketProps {
 }
 
 const stageConfig = {
-  "to-cook":   { label: "To Cook",   bg: "bg-[#FFE3DE]", text: "text-[#D55C4C]", dot: "bg-[#D55C4C]" },
-  "preparing": { label: "Preparing", bg: "bg-[#FFF1D9]", text: "text-[#D6A144]", dot: "bg-[#D6A144]" },
-  "completed": { label: "Completed", bg: "bg-[#E7F3DD]", text: "text-[#7C9C57]", dot: "bg-[#7C9C57]" },
+  "to-cook":   { label: "To Cook",   bg: "bg-danger/10", text: "text-danger", dot: "bg-danger" },
+  "preparing": { label: "Preparing", bg: "bg-gold/10", text: "text-gold", dot: "bg-gold" },
+  "completed": { label: "Completed", bg: "bg-success/10", text: "text-success", dot: "bg-success" },
 };
 
 const urgencyColor = (elapsed: number) => {
-  if (elapsed >= 15) return "border-[#D55C4C]";
-  if (elapsed >= 8)  return "border-[#D6A144]";
-  return "border-[#D8CCBF]";
+  if (elapsed >= 15) return "border-danger";
+  if (elapsed >= 8)  return "border-gold";
+  return "border-border-custom";
 };
 
 export function KDSTicket({ order, onAdvanceStage, onToggleItem }: KDSTicketProps) {
@@ -44,12 +45,12 @@ export function KDSTicket({ order, onAdvanceStage, onToggleItem }: KDSTicketProp
   const allDone = order.items.every(i => i.done);
 
   return (
-    <div className={`bg-[#F7F3ED] border-2 ${urgencyColor(order.elapsed)} rounded-[20px] flex flex-col overflow-hidden hover:-translate-y-0.5 transition-all duration-200 shadow-[0_1px_4px_rgba(0,0,0,0.06)]`}>
+    <div className={`bg-surface border-2 ${urgencyColor(order.elapsed)} rounded-[20px] flex flex-col overflow-hidden hover:-translate-y-0.5 transition-all duration-200 shadow-[0_1px_4px_rgba(0,0,0,0.06)]`}>
       {/* Ticket Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-[#F1ECE5] border-b border-[#D8CCBF]">
+      <div className="flex items-center justify-between px-4 py-3 bg-surface border-b border-border-custom theme-transition">
         <div className="flex items-center gap-2">
           <span className="text-[16px] font-bold text-text-heading">{order.id}</span>
-          <span className="text-[12px] font-semibold text-text-muted bg-white border border-[#D8CCBF] px-2 py-0.5 rounded-full">
+          <span className="text-[12px] font-semibold text-text-muted bg-white border border-border-custom px-2 py-0.5 rounded-full">
             {order.table}
           </span>
         </div>
@@ -72,14 +73,14 @@ export function KDSTicket({ order, onAdvanceStage, onToggleItem }: KDSTicketProp
             }`}
           >
             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-              item.done ? "border-[#7C9C57] bg-[#7C9C57]" : "border-[#D8CCBF]"
+              item.done ? "border-success bg-success" : "border-border-custom"
             }`}>
               {item.done && <span className="text-white text-[10px]">✓</span>}
             </div>
             <span className={`flex-1 text-[14px] font-semibold text-text-heading ${item.done ? "line-through text-text-muted" : ""}`}>
               {item.name}
             </span>
-            <span className={`text-[13px] font-bold shrink-0 ${item.done ? "text-text-muted" : "text-[#CB7637]"}`}>
+            <span className={`text-[13px] font-bold shrink-0 ${item.done ? "text-text-muted" : "text-primary"}`}>
               ×{item.quantity}
             </span>
           </button>
@@ -87,18 +88,25 @@ export function KDSTicket({ order, onAdvanceStage, onToggleItem }: KDSTicketProp
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-[#D8CCBF] flex items-center justify-between">
-        <div className={`flex items-center gap-1 text-[12px] font-semibold ${order.elapsed >= 15 ? "text-[#D55C4C]" : order.elapsed >= 8 ? "text-[#D6A144]" : "text-text-muted"}`}>
-          <Clock size={12} />
-          {order.elapsed}m ago
-        </div>
+      <div className="px-4 py-3 border-t border-border-custom flex items-center justify-between">
+        {order.stage === "completed" ? (
+          <div className="flex items-center gap-1 text-[12px] font-semibold text-success">
+            <Clock size={12} />
+            Completed at {order.completedAt || order.sentAt}
+          </div>
+        ) : (
+          <div className={`flex items-center gap-1 text-[12px] font-semibold ${order.elapsed >= 15 ? "text-danger" : order.elapsed >= 8 ? "text-gold" : "text-text-muted"}`}>
+            <Clock size={12} />
+            {order.elapsed}m ago
+          </div>
+        )}
         {order.stage !== "completed" && (
           <button
             onClick={() => onAdvanceStage(order.id)}
             className={`flex items-center gap-1.5 text-[12px] font-bold px-3 py-1.5 rounded-[10px] transition-all ${
               allDone || order.stage === "to-cook"
-                ? "bg-[#CB7637] hover:bg-[#B86830] text-white"
-                : "bg-[#F1ECE5] hover:bg-[#E8DECE] text-text-heading"
+                ? "bg-primary hover:brightness-105 text-white"
+                : "bg-surface hover:bg-border-custom/30 text-text-heading"
             }`}
           >
             {order.stage === "to-cook" ? "Start" : "Ready"}
@@ -106,7 +114,7 @@ export function KDSTicket({ order, onAdvanceStage, onToggleItem }: KDSTicketProp
           </button>
         )}
         {order.stage === "completed" && (
-          <span className="text-[12px] font-bold text-[#7C9C57]">✓ Done</span>
+          <span className="text-[12px] font-bold text-success">✓ Done</span>
         )}
       </div>
     </div>

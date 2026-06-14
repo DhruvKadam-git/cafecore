@@ -1,11 +1,17 @@
 import { Module } from '@nestjs/common';
-import { SessionsService } from './services/sessions.service';
+import { SessionsService } from './sessions.service';
 import { SessionsController } from './sessions.controller';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaModule } from '../prisma/prisma.module';
 
+/**
+ * Sessions Module
+ * Manages all POS session-related operations
+ * Exports SessionsService for use in other modules (e.g., Orders module)
+ */
 @Module({
-  providers: [SessionsService, PrismaService],
+  imports: [PrismaModule],
   controllers: [SessionsController],
+  providers: [SessionsService],
   exports: [SessionsService],
 })
-export class SessionsModule {}
+export class SessionsModule { }

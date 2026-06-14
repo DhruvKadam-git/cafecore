@@ -6,27 +6,41 @@ interface CategoryItem {
   name: string;
   percentage: number;
   color: string;
-  revenue: string;
+  revenue: number;
 }
 
-const categories: CategoryItem[] = [
-  { name: "Espresso", percentage: 35, color: "#C9783A", revenue: "$2,958" },
-  { name: "Cold Brew", percentage: 20, color: "#866443", revenue: "$1,690" },
-  { name: "Pastries", percentage: 18, color: "#D6A144", revenue: "$1,521" },
-  { name: "Sandwiches", percentage: 15, color: "#789658", revenue: "$1,268" },
-  { name: "Tea", percentage: 12, color: "#A86D4D", revenue: "$1,014" },
-];
+interface CategoryChartProps {
+  categories?: CategoryItem[];
+  totalRevenue?: number;
+  isLoading?: boolean;
+}
 
-export function CategoryChart() {
+export function CategoryChart({ categories = [], totalRevenue = 0, isLoading = false }: CategoryChartProps) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
-  // Layout geometry adjusted to fit h-[440px] card container
   const radius = 80;
   const strokeWidth = 26;
   const circumference = 2 * Math.PI * radius; // Approx 502.65
 
+  if (isLoading) {
+    return (
+      <div className="bg-surface border border-border-custom rounded-[20px] p-6 flex items-center justify-center shadow-[0_1px_1px_rgba(0,0,0,0.03)] h-[440px] theme-transition">
+        <div className="text-text-muted animate-pulse font-semibold">Loading categories...</div>
+      </div>
+    );
+  }
+
+  if (categories.length === 0) {
+    return (
+      <div className="bg-surface border border-border-custom rounded-[20px] p-6 flex flex-col items-center justify-center shadow-[0_1px_1px_rgba(0,0,0,0.03)] h-[440px] theme-transition">
+        <span className="text-text-muted font-semibold">No category data available</span>
+        <p className="text-[12px] text-text-muted/60 mt-1">Try check-ins later.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-[#F7F3ED] border border-[#D8CCBF] rounded-[20px] p-6 flex flex-col hover:translate-y-[-2px] transition-all duration-200 shadow-[0_1px_1px_rgba(0,0,0,0.03)] h-[440px]">
+    <div className="bg-surface border border-border-custom rounded-[20px] p-6 flex flex-col hover:translate-y-[-2px] transition-all duration-200 shadow-[0_1px_1px_rgba(0,0,0,0.03)] h-[440px] theme-transition">
       <div className="flex items-center justify-between mb-2 shrink-0">
         <h3 className="text-[18px] font-bold text-text-heading font-sans">
           Top Categories
@@ -43,7 +57,7 @@ export function CategoryChart() {
             cy="110"
             r={radius}
             fill="transparent"
-            stroke="#F1ECE5"
+            stroke="var(--surface)"
             strokeWidth={strokeWidth}
           />
 
@@ -79,7 +93,9 @@ export function CategoryChart() {
             {hoveredIdx !== null ? categories[hoveredIdx].name : "Total Sales"}
           </span>
           <span className="text-[24px] font-bold text-text-heading mt-0.5 leading-none">
-            {hoveredIdx !== null ? categories[hoveredIdx].percentage + "%" : "$8,452"}
+            {hoveredIdx !== null
+              ? categories[hoveredIdx].percentage + "%"
+              : `$${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`}
           </span>
         </div>
       </div>
@@ -107,7 +123,7 @@ export function CategoryChart() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-[13px] font-medium text-text-muted font-sans">
-                  {cat.revenue}
+                  ${cat.revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 <span className="text-[14px] font-bold text-text-heading font-sans w-8 text-right">
                   {cat.percentage}%

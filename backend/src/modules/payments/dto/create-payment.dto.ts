@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsNumber, IsEnum } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsEnum, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { PaymentMethod } from '../../../common/enums';
 
@@ -17,4 +17,9 @@ export class CreatePaymentDto {
   @IsNotEmpty()
   @IsEnum(PaymentMethod)
   method: PaymentMethod;
+
+  @ApiProperty({ example: 'WELCOME10', required: false })
+  @IsOptional()
+  @IsString()
+  couponCode?: string;
 }

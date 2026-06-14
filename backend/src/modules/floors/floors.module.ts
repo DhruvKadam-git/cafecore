@@ -1,11 +1,17 @@
 import { Module } from '@nestjs/common';
-import { FloorsService } from './services/floors.service';
+import { FloorsService } from './floors.service';
 import { FloorsController } from './floors.controller';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaModule } from '../prisma/prisma.module';
 
+/**
+ * Floors Module
+ * Manages all floor-related operations
+ * Exports FloorsService for use in other modules (e.g., Tables module)
+ */
 @Module({
-  providers: [FloorsService, PrismaService],
+  imports: [PrismaModule],
   controllers: [FloorsController],
+  providers: [FloorsService],
   exports: [FloorsService],
 })
-export class FloorsModule {}
+export class FloorsModule { }

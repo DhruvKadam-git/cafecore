@@ -9,11 +9,11 @@ interface CategoryBadgeProps {
 
 export function CategoryBadge({ category }: CategoryBadgeProps) {
   const styles = {
-    Espresso: "bg-[#F3E7DB] text-[#C9783A]",
-    "Cold Brew": "bg-[#EEE8DF] text-[#866443]",
-    Pastries: "bg-[#EAF0DE] text-[#8FA55A]",
-    Sandwiches: "bg-[#F0E3DD] text-[#B67A58]",
-    Tea: "bg-[#F8ECD8] text-[#D5A04B]",
+    Espresso: "bg-primary/10 text-primary",
+    "Cold Brew": "bg-sidebar-bg/10 text-sidebar-bg",
+    Pastries: "bg-success/10 text-success",
+    Sandwiches: "bg-primary/10 text-primary",
+    Tea: "bg-gold/10 text-gold",
   };
 
   return (

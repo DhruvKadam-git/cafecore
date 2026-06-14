@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { MoreVertical, Pencil, Trash2, Package } from "lucide-react";
+import Image from "next/image";
 import { Category } from "./types";
 
 interface CategoryCardProps {
@@ -17,10 +18,20 @@ export function CategoryCard({ category, onEdit, onDelete, onView }: CategoryCar
   return (
     <div
       onClick={() => !menuOpen && onView(category)}
-      className="bg-[#F7F3ED] border border-[#D8CCBF] rounded-[20px] overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:border-[#CB7637] transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.05)] group relative cursor-pointer"
+      className="bg-surface border border-border-custom rounded-[20px] overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:border-primary transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.05)] group relative cursor-pointer theme-transition"
     >
-      {/* Color band top */}
-      <div className="h-[8px] w-full" style={{ backgroundColor: category.color }} />
+      {/* Image or color band */}
+      {category.image && typeof category.image === "string" && category.image.trim() !== "" ? (
+        <div className="relative h-[100px] w-full overflow-hidden">
+          <Image src={category.image} alt={category.name} fill className="object-cover" unoptimized />
+          {/* Gradient overlay so badge stays readable */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          {/* Color accent bar at bottom of image */}
+          <div className="absolute bottom-0 left-0 right-0 h-[4px]" style={{ backgroundColor: category.color }} />
+        </div>
+      ) : (
+        <div className="h-[8px] w-full" style={{ backgroundColor: category.color }} />
+      )}
 
       <div className="p-5">
         {/* Row 1: Badge + menu */}
@@ -37,21 +48,21 @@ export function CategoryCard({ category, onEdit, onDelete, onView }: CategoryCar
             <button
               onClick={() => setMenuOpen(o => !o)}
               onBlur={() => setTimeout(() => setMenuOpen(false), 150)}
-              className="w-8 h-8 rounded-[10px] flex items-center justify-center text-text-muted hover:bg-[#F1ECE5] hover:text-text-heading transition-colors"
+              className="w-8 h-8 rounded-[10px] flex items-center justify-center text-text-muted hover:bg-surface hover:text-text-heading transition-colors theme-transition"
             >
               <MoreVertical size={16} />
             </button>
             {menuOpen && (
-              <div className="absolute right-0 top-9 bg-white border border-[#D8CCBF] rounded-[14px] shadow-xl z-20 py-1.5 min-w-[140px] overflow-hidden">
+              <div className="absolute right-0 top-9 bg-white border border-border-custom rounded-[14px] shadow-xl z-20 py-1.5 min-w-[140px] overflow-hidden">
                 <button
                   onClick={() => { onEdit(category); setMenuOpen(false); }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold text-text-body hover:bg-[#F7F3ED] transition-colors"
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold text-text-body hover:bg-surface transition-colors theme-transition"
                 >
-                  <Pencil size={14} className="text-[#CB7637]" /> Edit
+                  <Pencil size={14} className="text-primary" /> Edit
                 </button>
                 <button
                   onClick={() => { onDelete(category.id); setMenuOpen(false); }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold text-[#D55C4C] hover:bg-[#FFF1F0] transition-colors"
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold text-danger hover:bg-danger/10 transition-colors"
                 >
                   <Trash2 size={14} /> Delete
                 </button>
@@ -73,14 +84,14 @@ export function CategoryCard({ category, onEdit, onDelete, onView }: CategoryCar
 
         {/* Stats row */}
         <div className="grid grid-cols-2 gap-3 mt-4">
-          <div className="bg-[#F1ECE5] rounded-[12px] p-3 flex flex-col gap-0.5">
+          <div className="bg-surface rounded-[12px] p-3 flex flex-col gap-0.5 theme-transition">
             <div className="flex items-center gap-1.5 text-text-muted">
               <Package size={12} />
               <span className="text-[11px] font-semibold uppercase tracking-wider">Products</span>
             </div>
             <span className="text-[20px] font-bold text-text-heading leading-none">{category.productCount}</span>
           </div>
-          <div className="bg-[#F1ECE5] rounded-[12px] p-3 flex flex-col gap-0.5">
+          <div className="bg-surface rounded-[12px] p-3 flex flex-col gap-0.5 theme-transition">
             <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">Revenue</span>
             <span className="text-[20px] font-bold leading-none" style={{ color: category.color }}>
               {category.revenue}
@@ -89,9 +100,9 @@ export function CategoryCard({ category, onEdit, onDelete, onView }: CategoryCar
         </div>
 
         {/* Footer */}
-        <p className="text-[11px] font-medium text-text-muted mt-3 pt-3 border-t border-[#D8CCBF]/60 flex items-center justify-between">
+        <p className="text-[11px] font-medium text-text-muted mt-3 pt-3 border-t border-border-custom/60 flex items-center justify-between">
           <span>Created {category.createdAt}</span>
-          <span className="text-[#CB7637] font-semibold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+          <span className="text-primary font-semibold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
             View products →
           </span>
         </p>

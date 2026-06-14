@@ -67,7 +67,7 @@ async function main() {
   await prisma.payment.deleteMany();
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
-  await prisma.table.deleteMany();
+  await prisma.restaurantTable.deleteMany();
   await prisma.floor.deleteMany();
   await prisma.customer.deleteMany();
   await prisma.product.deleteMany();
@@ -107,45 +107,45 @@ async function main() {
 
   // Create Floors
   const floorG = await prisma.floor.create({
-    data: { name: 'Ground Floor', floorNumber: 0, description: 'Main dining hall and counter' },
+    data: { name: 'Ground Floor', sortOrder: 0 },
   });
   const floor1 = await prisma.floor.create({
-    data: { name: 'First Floor', floorNumber: 1, description: 'Cozy seating area and balcony' },
+    data: { name: 'First Floor', sortOrder: 1 },
   });
 
   // Create Tables
   const tables: any[] = [];
   const gTableConfigs = [
-    { name: 'Table 1', capacity: 2 },
-    { name: 'Table 2', capacity: 2 },
-    { name: 'Table 3', capacity: 4 },
-    { name: 'Table 4', capacity: 4 },
-    { name: 'Table 5', capacity: 6 },
-    { name: 'Table 6', capacity: 2 },
-    { name: 'Table 7', capacity: 4 },
-    { name: 'Table 8', capacity: 8 },
+    { name: 'T1', capacity: 2 },
+    { name: 'T2', capacity: 2 },
+    { name: 'T3', capacity: 4 },
+    { name: 'T4', capacity: 4 },
+    { name: 'T5', capacity: 6 },
+    { name: 'T6', capacity: 2 },
+    { name: 'T7', capacity: 4 },
+    { name: 'T8', capacity: 8 },
   ];
   const fTableConfigs = [
-    { name: 'Table 9', capacity: 2 },
-    { name: 'Table 10', capacity: 2 },
-    { name: 'Table 11', capacity: 4 },
-    { name: 'Table 12', capacity: 4 },
-    { name: 'Table 13', capacity: 6 },
-    { name: 'Table 14', capacity: 2 },
-    { name: 'Table 15', capacity: 4 },
-    { name: 'Table 16', capacity: 6 },
+    { name: 'T9', capacity: 2 },
+    { name: 'T10', capacity: 2 },
+    { name: 'T11', capacity: 4 },
+    { name: 'T12', capacity: 4 },
+    { name: 'T13', capacity: 6 },
+    { name: 'T14', capacity: 2 },
+    { name: 'T15', capacity: 4 },
+    { name: 'T16', capacity: 6 },
   ];
 
   for (const config of gTableConfigs) {
-    const t = await prisma.table.create({
-      data: { ...config, floorId: floorG.id, status: 'available' },
+    const t = await prisma.restaurantTable.create({
+      data: { tableNumber: config.name, seats: config.capacity, floorId: floorG.id, status: 'AVAILABLE' },
     });
     tables.push(t);
   }
 
   for (const config of fTableConfigs) {
-    const t = await prisma.table.create({
-      data: { ...config, floorId: floor1.id, status: 'available' },
+    const t = await prisma.restaurantTable.create({
+      data: { tableNumber: config.name, seats: config.capacity, floorId: floor1.id, status: 'AVAILABLE' },
     });
     tables.push(t);
   }
@@ -154,12 +154,12 @@ async function main() {
 
   // Create Categories
   const categoriesData = [
-    { name: 'Coffee', description: 'Hot and cold brewed coffee beverages' },
-    { name: 'Tea & Chai', description: 'Premium selection of hot teas and classic chai' },
-    { name: 'Bakery', description: 'Freshly baked croissants, muffins, and cookies' },
-    { name: 'Sandwiches & Wraps', description: 'Freshly prepared wraps and sandwiches' },
-    { name: 'Desserts', description: 'Sweet treats, pastries, and cakes' },
-    { name: 'Cold Beverages', description: 'Shakes, iced drinks, and juices' },
+    { name: 'Coffee' },
+    { name: 'Tea & Chai' },
+    { name: 'Bakery' },
+    { name: 'Sandwiches & Wraps' },
+    { name: 'Desserts' },
+    { name: 'Cold Beverages' },
   ];
 
   const categoriesMap: { [key: string]: string } = {};
@@ -171,41 +171,41 @@ async function main() {
   // Create Products
   const productsData = [
     // Coffee
-    { name: 'Espresso', price: 2.50, categoryName: 'Coffee', description: 'Rich and concentrated shot of coffee' },
-    { name: 'Caffe Latte', price: 4.20, categoryName: 'Coffee', description: 'Espresso with steamed milk and a light layer of foam' },
-    { name: 'Cappuccino', price: 4.20, categoryName: 'Coffee', description: 'Espresso, steamed milk, and wet milk foam' },
-    { name: 'Americano', price: 3.20, categoryName: 'Coffee', description: 'Espresso shots topped with hot water' },
-    { name: 'Caramel Macchiato', price: 4.80, categoryName: 'Coffee', description: 'Espresso with vanilla syrup, milk, and caramel drizzle' },
-    { name: 'Mocha', price: 4.70, categoryName: 'Coffee', description: 'Espresso, chocolate syrup, and steamed milk' },
+    { name: 'Espresso', price: 2.50, categoryName: 'Coffee', description: 'Rich and concentrated shot of coffee', imageUrl: 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=400&h=400&fit=crop' },
+    { name: 'Caffe Latte', price: 4.20, categoryName: 'Coffee', description: 'Espresso with steamed milk and a light layer of foam', imageUrl: 'https://images.unsplash.com/photo-1570968915860-54d5c301fc9f?w=400&h=400&fit=crop' },
+    { name: 'Cappuccino', price: 4.20, categoryName: 'Coffee', description: 'Espresso, steamed milk, and wet milk foam', imageUrl: 'https://images.unsplash.com/photo-1534778101976-62847782c213?w=400&h=400&fit=crop' },
+    { name: 'Americano', price: 3.20, categoryName: 'Coffee', description: 'Espresso shots topped with hot water', imageUrl: 'https://images.unsplash.com/photo-1551030173-1d9694761516?w=400&h=400&fit=crop' },
+    { name: 'Caramel Macchiato', price: 4.80, categoryName: 'Coffee', description: 'Espresso with vanilla syrup, milk, and caramel drizzle', imageUrl: 'https://images.unsplash.com/photo-1485808191679-5f86510bd9d4?w=400&h=400&fit=crop' },
+    { name: 'Mocha', price: 4.70, categoryName: 'Coffee', description: 'Espresso, chocolate syrup, and steamed milk', imageUrl: 'https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?w=400&h=400&fit=crop' },
 
     // Tea
-    { name: 'Masala Chai', price: 3.50, categoryName: 'Tea & Chai', description: 'Brewed black tea with spiced milk and sugar' },
-    { name: 'Matcha Latte', price: 4.90, categoryName: 'Tea & Chai', description: 'Pure Japanese matcha green tea whisked with milk' },
-    { name: 'Green Tea', price: 3.00, categoryName: 'Tea & Chai', description: 'Delicate and refreshing steamed green tea leaves' },
-    { name: 'Earl Grey Tea', price: 3.20, categoryName: 'Tea & Chai', description: 'Black tea scented with oil of bergamot' },
+    { name: 'Masala Chai', price: 3.50, categoryName: 'Tea & Chai', description: 'Brewed black tea with spiced milk and sugar', imageUrl: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=400&h=400&fit=crop' },
+    { name: 'Matcha Latte', price: 4.90, categoryName: 'Tea & Chai', description: 'Pure Japanese matcha green tea whisked with milk', imageUrl: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=400&h=400&fit=crop' },
+    { name: 'Green Tea', price: 3.00, categoryName: 'Tea & Chai', description: 'Delicate and refreshing steamed green tea leaves', imageUrl: 'https://images.unsplash.com/photo-1627435601361-ec25f5b1d0e5?w=400&h=400&fit=crop' },
+    { name: 'Earl Grey Tea', price: 3.20, categoryName: 'Tea & Chai', description: 'Black tea scented with oil of bergamot', imageUrl: 'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?w=400&h=400&fit=crop' },
 
     // Bakery
-    { name: 'Butter Croissant', price: 3.00, categoryName: 'Bakery', description: 'Flaky and buttery classic French pastry' },
-    { name: 'Chocolate Croissant', price: 3.50, categoryName: 'Bakery', description: 'Butter croissant stuffed with rich chocolate' },
-    { name: 'Blueberry Muffin', price: 3.20, categoryName: 'Bakery', description: 'Moist muffin loaded with fresh blueberries' },
-    { name: 'Chocolate Chip Cookie', price: 2.50, categoryName: 'Bakery', description: 'Chewy, freshly baked cookie with chocolate chips' },
+    { name: 'Butter Croissant', price: 3.00, categoryName: 'Bakery', description: 'Flaky and buttery classic French pastry', imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&h=400&fit=crop' },
+    { name: 'Chocolate Croissant', price: 3.50, categoryName: 'Bakery', description: 'Butter croissant stuffed with rich chocolate', imageUrl: 'https://images.unsplash.com/photo-1612978674174-666fe2c36a13?w=400&h=400&fit=crop' },
+    { name: 'Blueberry Muffin', price: 3.20, categoryName: 'Bakery', description: 'Moist muffin loaded with fresh blueberries', imageUrl: 'https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=400&h=400&fit=crop' },
+    { name: 'Chocolate Chip Cookie', price: 2.50, categoryName: 'Bakery', description: 'Chewy, freshly baked cookie with chocolate chips', imageUrl: 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400&h=400&fit=crop' },
 
     // Sandwiches
-    { name: 'Caprese Sandwich', price: 7.90, categoryName: 'Sandwiches & Wraps', description: 'Mozzarella, tomato, pesto, and balsamic glaze on ciabatta' },
-    { name: 'Chicken Club Sandwich', price: 8.50, categoryName: 'Sandwiches & Wraps', description: 'Grilled chicken, bacon, lettuce, tomato, and mayo' },
-    { name: 'Avocado Toast', price: 7.20, categoryName: 'Sandwiches & Wraps', description: 'Smashed avocado, cherry tomatoes, and feta on sourdough' },
-    { name: 'Paneer Tikka Wrap', price: 7.80, categoryName: 'Sandwiches & Wraps', description: 'Spiced paneer, veggies, and mint chutney wrapped in tortilla' },
+    { name: 'Caprese Sandwich', price: 7.90, categoryName: 'Sandwiches & Wraps', description: 'Mozzarella, tomato, pesto, and balsamic glaze on ciabatta', imageUrl: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400&h=400&fit=crop' },
+    { name: 'Chicken Club Sandwich', price: 8.50, categoryName: 'Sandwiches & Wraps', description: 'Grilled chicken, bacon, lettuce, tomato, and mayo', imageUrl: 'https://images.unsplash.com/photo-1567234669013-216f9fa26c36?w=400&h=400&fit=crop' },
+    { name: 'Avocado Toast', price: 7.20, categoryName: 'Sandwiches & Wraps', description: 'Smashed avocado, cherry tomatoes, and feta on sourdough', imageUrl: 'https://images.unsplash.com/photo-1541519227354-08fa5d50c820?w=400&h=400&fit=crop' },
+    { name: 'Paneer Tikka Wrap', price: 7.80, categoryName: 'Sandwiches & Wraps', description: 'Spiced paneer, veggies, and mint chutney wrapped in tortilla', imageUrl: 'https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400&h=400&fit=crop' },
 
     // Desserts
-    { name: 'New York Cheesecake', price: 5.50, categoryName: 'Desserts', description: 'Creamy and dense classic cheesecake' },
-    { name: 'Tiramisu slice', price: 5.80, categoryName: 'Desserts', description: 'Espresso-soaked ladyfingers with mascarpone cream' },
-    { name: 'Chocolate Fudge Cake', price: 5.20, categoryName: 'Desserts', description: 'Rich and moist triple chocolate fudge cake' },
+    { name: 'New York Cheesecake', price: 5.50, categoryName: 'Desserts', description: 'Creamy and dense classic cheesecake', imageUrl: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=400&h=400&fit=crop' },
+    { name: 'Tiramisu slice', price: 5.80, categoryName: 'Desserts', description: 'Espresso-soaked ladyfingers with mascarpone cream', imageUrl: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400&h=400&fit=crop' },
+    { name: 'Chocolate Fudge Cake', price: 5.20, categoryName: 'Desserts', description: 'Rich and moist triple chocolate fudge cake', imageUrl: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=400&fit=crop' },
 
     // Cold Beverages
-    { name: 'Iced Peach Tea', price: 3.80, categoryName: 'Cold Beverages', description: 'Sweetened iced tea flavored with fresh peaches' },
-    { name: 'Cold Brew Coffee', price: 4.00, categoryName: 'Cold Beverages', description: 'Slow-steeped iced coffee' },
-    { name: 'Mango Smoothie', price: 5.00, categoryName: 'Cold Beverages', description: 'Blended fresh mangoes, yogurt, and honey' },
-    { name: 'Chocolate Milkshake', price: 4.80, categoryName: 'Cold Beverages', description: 'Thick and creamy classic chocolate milkshake' },
+    { name: 'Iced Peach Tea', price: 3.80, categoryName: 'Cold Beverages', description: 'Sweetened iced tea flavored with fresh peaches', imageUrl: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&h=400&fit=crop' },
+    { name: 'Cold Brew Coffee', price: 4.00, categoryName: 'Cold Beverages', description: 'Slow-steeped iced coffee', imageUrl: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&h=400&fit=crop' },
+    { name: 'Mango Smoothie', price: 5.00, categoryName: 'Cold Beverages', description: 'Blended fresh mangoes, yogurt, and honey', imageUrl: 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=400&h=400&fit=crop' },
+    { name: 'Chocolate Milkshake', price: 4.80, categoryName: 'Cold Beverages', description: 'Thick and creamy classic chocolate milkshake', imageUrl: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=400&h=400&fit=crop' },
   ];
 
   const products: any[] = [];
@@ -216,7 +216,8 @@ async function main() {
         price: prod.price,
         description: prod.description,
         categoryId: categoriesMap[prod.categoryName],
-        stock: 50, // default stock
+        taxRate: 5.00,
+        imageUrl: prod.imageUrl,
       },
     });
     products.push(p);
@@ -226,7 +227,13 @@ async function main() {
 
   const customers: any[] = [];
   for (const cust of CUSTOMERS_POOL) {
-    const c = await prisma.customer.create({ data: cust });
+    const c = await prisma.customer.create({ 
+      data: {
+        name: cust.name,
+        email: cust.email,
+        phoneNumber: cust.phone,
+      } 
+    });
     customers.push(c);
   }
 
@@ -259,8 +266,10 @@ async function main() {
 
   // Start Date: exactly 1 year ago (365 days ago)
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const startDate = new Date();
   startDate.setDate(today.getDate() - 365);
+  startDate.setHours(0, 0, 0, 0);
 
   console.log(`Generating orders from ${startDate.toDateString()} to ${today.toDateString()}...`);
 
@@ -277,7 +286,7 @@ async function main() {
     p.categoryId === categoriesMap['Sandwiches & Wraps'] || p.categoryId === categoriesMap['Cold Beverages'] || p.categoryId === categoriesMap['Desserts']
   );
 
-  while (currentDay <= today) {
+  while (currentDay < today) {
     // Generate daily session for employee
     const sessionStart = new Date(currentDay);
     sessionStart.setHours(7, 30, 0, 0); // shift starts at 7:30 AM
@@ -287,11 +296,11 @@ async function main() {
 
     const session = await prisma.session.create({
       data: {
-        userId: employee.id,
-        description: `Daily Shift - ${currentDay.toISOString().split('T')[0]}`,
-        status: 'closed',
+        openedByUserId: employee.id,
+        status: 'CLOSED',
         createdAt: sessionStart,
         closedAt: sessionEnd,
+        openedAt: sessionStart,
       },
     });
 
@@ -330,12 +339,9 @@ async function main() {
         customerId = randomCustomer.id;
       }
 
-      // Determine order type: dine-in (75%) vs takeaway (25%)
-      let tableId: string | null = null;
-      if (Math.random() < 0.75) {
-        const randomTable = tables[Math.floor(Math.random() * tables.length)];
-        tableId = randomTable.id;
-      }
+      // Determine table
+      const randomTable = tables[Math.floor(Math.random() * tables.length)];
+      const tableId = randomTable.id;
 
       // Select products based on time of day
       let menuSubset = products;
@@ -364,31 +370,46 @@ async function main() {
 
       // Map out the order items data
       let subtotal = 0;
+      let taxTotal = 0;
       const orderItemsData = selectedProducts.map(p => {
         const qty = Math.random() < 0.15 ? 2 : 1; // 15% chance of quantity 2, else 1
         const price = p.price;
-        subtotal += price * qty;
+        const taxRate = 5.00;
+        const lineSubtotal = price * qty;
+        const lineTax = (lineSubtotal * taxRate) / 100;
+        const lineTotal = lineSubtotal + lineTax;
+
+        subtotal += lineSubtotal;
+        taxTotal += lineTax;
+
         return {
           productId: p.id,
+          productNameSnapshot: p.name,
+          unitPriceSnapshot: price,
+          taxRateSnapshot: taxRate,
           quantity: qty,
-          unitPrice: price,
-          createdAt: orderTime,
+          lineSubtotal,
+          lineTax,
+          lineDiscount: 0,
+          lineTotal,
         };
       });
 
       // Apply coupon or discount logic (15% chance of coupon application)
-      let finalAmount = subtotal;
+      let discountTotal = 0;
       let appliedCouponCode = '';
 
       if (!isCancelled && Math.random() < 0.15) {
         if (isWeekend && subtotal >= couponWeekend.minOrderAmount!) {
-          finalAmount = subtotal * (1 - couponWeekend.discountPercentage / 100);
+          discountTotal = subtotal * (couponWeekend.discountPercentage / 100);
           appliedCouponCode = couponWeekend.code;
         } else if (subtotal >= couponWelcome.minOrderAmount!) {
-          finalAmount = subtotal * (1 - couponWelcome.discountPercentage / 100);
+          discountTotal = subtotal * (couponWelcome.discountPercentage / 100);
           appliedCouponCode = couponWelcome.code;
         }
       }
+
+      const grandTotal = subtotal + taxTotal - discountTotal;
 
       // Create Order, OrderItems, and Payment inside nested transaction
       const paymentMethod = [
@@ -404,18 +425,25 @@ async function main() {
 
       await prisma.order.create({
         data: {
-          customerId,
+          orderNumber: `ORD-${currentDay.toISOString().split('T')[0].replace(/-/g, '')}-${orderCounter}`,
+          sessionId: session.id,
           tableId,
+          customerId: customerId || undefined,
+          createdByUserId: employee.id,
           status,
+          subtotal,
+          taxTotal,
+          discountTotal,
+          grandTotal,
           notes: appliedCouponCode ? `Applied coupon ${appliedCouponCode}` : null,
           createdAt: orderTime,
           updatedAt: orderTime,
-          items: {
+          orderItems: {
             create: orderItemsData,
           },
-          payment: {
+          payments: {
             create: {
-              amount: parseFloat(finalAmount.toFixed(2)),
+              amount: parseFloat(grandTotal.toFixed(2)),
               method: paymentMethod,
               status: paymentStatus,
               createdAt: orderTime,

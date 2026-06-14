@@ -1,13 +1,16 @@
 import { Module } from '@nestjs/common';
-import { OrdersService } from './services/orders.service';
+import { OrdersService } from './orders.service';
 import { OrdersController } from './orders.controller';
-import { PrismaService } from '../prisma/prisma.service';
-import { ProductsModule } from '../products/products.module';
+import { PrismaModule } from '../prisma/prisma.module';
 
+/**
+ * Orders Module
+ * Manages order creation, updates, and lifecycle
+ * Imports PrismaModule to access database
+ */
 @Module({
-  imports: [ProductsModule],
-  providers: [OrdersService, PrismaService],
+  imports: [PrismaModule],
   controllers: [OrdersController],
-  exports: [OrdersService],
+  providers: [OrdersService],
 })
-export class OrdersModule {}
+export class OrdersModule { }

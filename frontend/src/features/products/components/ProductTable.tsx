@@ -20,7 +20,7 @@ export function ProductTable({
   onToggleActive,
 }: ProductTableProps) {
   return (
-    <div className="w-full bg-[#F7F3ED] border border-[#D8CCBF] rounded-[20px] shadow-[0_1px_2px_rgba(0,0,0,0.03)] overflow-hidden">
+    <div className="w-full bg-surface border border-border-custom rounded-[20px] shadow-[0_1px_2px_rgba(0,0,0,0.03)] overflow-hidden theme-transition">
       
       {/* Horizontal Scroll wrapper for responsiveness */}
       <div className="overflow-x-auto w-full no-scrollbar">
@@ -28,7 +28,7 @@ export function ProductTable({
           
           {/* Table Header */}
           <thead>
-            <tr className="bg-[#EFE8DE] h-[44px] border-b border-[#D8CCBF]">
+            <tr className="bg-card-bg h-[44px] border-b border-border-custom theme-transition">
               <th className="px-6 py-2 text-[13px] font-bold text-text-heading select-none">
                 Name
               </th>
@@ -58,7 +58,7 @@ export function ProductTable({
             {products.map((product) => (
               <tr
                 key={product.id}
-                className="h-[58px] border-b border-[#D8CCBF] last:border-0 hover:bg-[#FAF6F1] transition-colors duration-200"
+                className="h-[58px] border-b border-border-custom last:border-0 hover:bg-surface/80 transition-colors duration-200 theme-transition"
               >
                 {/* Product Name */}
                 <td className="px-6 py-2 text-[15px] font-bold text-text-heading">

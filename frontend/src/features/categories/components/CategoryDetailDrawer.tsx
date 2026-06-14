@@ -87,7 +87,7 @@ export function CategoryDetailDrawer({ category, onClose, onEdit }: CategoryDeta
       />
 
       {/* Drawer panel */}
-      <div className={`fixed right-0 top-0 h-full w-full max-w-[520px] bg-[#F4EFE8] z-50 flex flex-col shadow-2xl transition-transform duration-300 ease-out ${
+      <div className={`fixed right-0 top-0 h-full w-full max-w-[520px] bg-background z-50 flex flex-col shadow-2xl transition-transform duration-300 ease-out ${
         visible ? "translate-x-0" : "translate-x-full"
       }`}>
 
@@ -95,7 +95,7 @@ export function CategoryDetailDrawer({ category, onClose, onEdit }: CategoryDeta
         <div className="h-[6px] w-full shrink-0" style={{ backgroundColor: category.color }} />
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#D8CCBF] shrink-0 bg-[#F7F3ED]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-custom shrink-0 bg-surface theme-transition">
           <div className="flex items-center gap-3">
             <span className="px-3.5 py-1.5 rounded-full text-[14px] font-bold text-white shadow-sm" style={{ backgroundColor: category.color }}>
               {category.name}
@@ -114,13 +114,13 @@ export function CategoryDetailDrawer({ category, onClose, onEdit }: CategoryDeta
             </button>
             <button
               onClick={() => onEdit(category)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-[#F1ECE5] hover:bg-[#E8DECE] text-text-body text-[13px] font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-surface hover:bg-border-custom/30 text-text-body text-[13px] font-semibold transition-colors theme-transition"
             >
-              <Pencil size={13} className="text-[#CB7637]" /> Edit
+              <Pencil size={13} className="text-primary" /> Edit
             </button>
             <button
               onClick={handleClose}
-              className="w-9 h-9 rounded-[12px] flex items-center justify-center bg-[#F1ECE5] hover:bg-[#E8DECE] text-text-muted hover:text-text-heading transition-colors"
+              className="w-9 h-9 rounded-[12px] flex items-center justify-center bg-surface hover:bg-border-custom/30 text-text-muted hover:text-text-heading transition-colors theme-transition"
             >
               <X size={18} />
             </button>
@@ -128,15 +128,15 @@ export function CategoryDetailDrawer({ category, onClose, onEdit }: CategoryDeta
         </div>
 
         {/* Mini stats */}
-        <div className="grid grid-cols-3 gap-3 px-6 py-4 shrink-0 border-b border-[#D8CCBF] bg-[#F7F3ED]">
+        <div className="grid grid-cols-3 gap-3 px-6 py-4 shrink-0 border-b border-border-custom bg-surface theme-transition">
           {[
             { icon: Package,    label: "Total",     value: String(products.length), color: category.color },
-            { icon: TrendingUp, label: "Active",    value: String(activeCount),     color: "#7C9C57"      },
-            { icon: DollarSign, label: "Avg Price", value: `$${avgPrice}`,          color: "#CB7637"      },
+            { icon: TrendingUp, label: "Active",    value: String(activeCount),     color: "var(--success)"      },
+            { icon: DollarSign, label: "Avg Price", value: `$${avgPrice}`,          color: "var(--primary)"      },
           ].map(s => {
             const Icon = s.icon;
             return (
-              <div key={s.label} className="bg-[#F1ECE5] rounded-[14px] p-3 flex flex-col gap-1">
+              <div key={s.label} className="bg-surface rounded-[14px] p-3 flex flex-col gap-1 theme-transition">
                 <div className="flex items-center gap-1.5">
                   <Icon size={13} style={{ color: s.color }} />
                   <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">{s.label}</span>
@@ -148,7 +148,7 @@ export function CategoryDetailDrawer({ category, onClose, onEdit }: CategoryDeta
         </div>
 
         {/* Search + filter */}
-        <div className="flex items-center gap-3 px-6 py-4 shrink-0 border-b border-[#D8CCBF]">
+        <div className="flex items-center gap-3 px-6 py-4 shrink-0 border-b border-border-custom">
           <div className="relative flex-1">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
             <input
@@ -156,16 +156,16 @@ export function CategoryDetailDrawer({ category, onClose, onEdit }: CategoryDeta
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search products…"
-              className="w-full bg-[#F1ECE5] border border-[#D8CCBF] rounded-[11px] pl-8 pr-3 py-2 text-[13px] font-medium text-text-heading placeholder:text-text-muted outline-none focus:border-[#CB7637] transition-colors"
+              className="w-full bg-surface border border-border-custom rounded-[11px] pl-8 pr-3 py-2 text-[13px] font-medium text-text-heading placeholder:text-text-muted outline-none focus:border-primary transition-colors theme-transition"
             />
           </div>
-          <div className="flex bg-[#F1ECE5] rounded-[11px] p-0.5 gap-0.5">
+          <div className="flex bg-surface rounded-[11px] p-0.5 gap-0.5 theme-transition">
             {(["all", "Active", "Inactive"] as const).map(f => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-2.5 py-1.5 rounded-[9px] text-[12px] font-semibold transition-all ${
-                  filter === f ? "bg-white text-[#CB7637] shadow-sm" : "text-text-muted hover:text-text-body"
+                  filter === f ? "bg-white text-primary shadow-sm" : "text-text-muted hover:text-text-body"
                 }`}
               >
                 {f === "all" ? `All (${products.length})` : f === "Active" ? `✓ ${activeCount}` : `— ${inactiveCount}`}
@@ -201,7 +201,7 @@ export function CategoryDetailDrawer({ category, onClose, onEdit }: CategoryDeta
                 <div
                   key={product.id}
                   onClick={() => setProductModal({ mode: "edit", product })}
-                  className="bg-[#F7F3ED] border border-[#D8CCBF] rounded-[16px] p-4 flex items-center gap-4 hover:border-[#CB7637] hover:-translate-y-0.5 transition-all duration-150 group cursor-pointer"
+                  className="bg-surface border border-border-custom rounded-[16px] p-4 flex items-center gap-4 hover:border-primary hover:-translate-y-0.5 transition-all duration-150 group cursor-pointer theme-transition"
                 >
                   {/* Avatar */}
                   <ProductAvatar
@@ -219,15 +219,15 @@ export function CategoryDetailDrawer({ category, onClose, onEdit }: CategoryDeta
                       <p className="text-[14px] font-bold text-text-heading truncate">{product.name}</p>
                       <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         product.status === "Active"
-                          ? "bg-[#E7F3DD] text-[#7C9C57]"
-                          : "bg-[#F1ECE5] text-text-muted"
+                          ? "bg-success/10 text-success"
+                          : "bg-surface text-text-muted"
                       }`}>
                         {product.status}
                       </span>
                     </div>
                     <p className="text-[12px] text-text-muted font-medium mt-0.5 truncate">{product.description || "—"}</p>
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                      <span className="text-[11px] font-semibold text-text-muted bg-[#F1ECE5] px-2 py-0.5 rounded-full">
+                      <span className="text-[11px] font-semibold text-text-muted bg-surface px-2 py-0.5 rounded-full theme-transition">
                         {product.unitOfMeasure}
                       </span>
                       <span className="text-[11px] font-semibold text-text-muted">
@@ -241,7 +241,7 @@ export function CategoryDetailDrawer({ category, onClose, onEdit }: CategoryDeta
                     <p className="text-[16px] font-bold text-text-heading">
                       ${product.price.toFixed(2)}
                     </p>
-                    <ChevronRight size={14} className="text-[#D8CCBF] group-hover:text-[#CB7637] transition-colors" />
+                    <ChevronRight size={14} className="text-border-custom group-hover:text-primary transition-colors" />
                   </div>
                 </div>
               ))}
@@ -250,7 +250,7 @@ export function CategoryDetailDrawer({ category, onClose, onEdit }: CategoryDeta
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-[#D8CCBF] shrink-0 bg-[#F7F3ED] flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-border-custom shrink-0 bg-surface flex items-center justify-between theme-transition">
           <span className="text-[12px] font-semibold text-text-muted">
             Showing <span className="text-text-heading font-bold">{filtered.length}</span> of{" "}
             <span className="text-text-heading font-bold">{products.length}</span> products
@@ -279,7 +279,7 @@ export function CategoryDetailDrawer({ category, onClose, onEdit }: CategoryDeta
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] bg-[#2B1F16] text-white text-[13px] font-semibold px-5 py-3 rounded-full shadow-xl flex items-center gap-2 animate-fade-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] bg-text-heading text-white text-[13px] font-semibold px-5 py-3 rounded-full shadow-xl flex items-center gap-2 animate-fade-in">
           <span style={{ color: category.color }}>✓</span> {toast}
         </div>
       )}

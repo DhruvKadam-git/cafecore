@@ -1,28 +1,138 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Product, ProductViewMode, ProductFormData } from "@/lib/product-types";
-import { INITIAL_PRODUCTS, DEFAULT_PRODUCT_IMAGE } from "@/lib/mock-products";
 import { ProductTable } from "@/features/products/components/ProductTable";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ProductModal } from "@/features/products/components/ProductModal";
 import { ProductsToolbar } from "@/features/products/components/ProductsToolbar";
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [viewMode, setViewMode] = useState<ProductViewMode>("list");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleToggleActive = (id: string) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, active: !p.active } : p))
-    );
+  // Auto-login to obtain JWT token
+  useEffect(() => {
+    async function autoLogin() {
+      try {
+        const response = await fetch("http://localhost:3000/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: "admin@cafe.com",
+            password: "Admin@123",
+          }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setToken(data.accessToken);
+        }
+      } catch (err) {
+        console.error("Products auto-login error:", err);
+      }
+    }
+    autoLogin();
+  }, []);
+
+  const refreshData = async (jwt: string) => {
+    setLoading(true);
+    try {
+      const headers = { Authorization: `Bearer ${jwt}` };
+      const [productsRes, categoriesRes] = await Promise.all([
+        fetch("http://localhost:3000/products?limit=100", { headers }),
+        fetch("http://localhost:3000/categories?limit=100", { headers }),
+      ]);
+
+      if (productsRes.ok && categoriesRes.ok) {
+        const productsData = await productsRes.json();
+        const categoriesData = await categoriesRes.json();
+
+        const activeCategories = categoriesData.data || [];
+        setCategories(activeCategories);
+
+        const mapped: Product[] = (productsData.data || []).map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          price: Number(p.price),
+          category: p.category ? p.category.name : "Uncategorized",
+          categoryId: p.categoryId,
+          uom: p.unitOfMeasure || "Cup",
+          tax: p.taxRate ? `${Number(p.taxRate)}%` : "8%",
+          active: p.isActive,
+          imageUrl: p.imageUrl 
+            ? (p.imageUrl.startsWith("http") ? p.imageUrl : `http://localhost:3000${p.imageUrl}`)
+            : "",
+          sizes: ["Small", "Large"],
+          defaultSize: "Small",
+          color: p.category?.color, // support dynamic category color
+        }));
+
+        setProducts(mapped);
+      }
+    } catch (err) {
+      console.error("Error fetching products:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = (id: string) => {
+  useEffect(() => {
+    if (token) {
+      refreshData(token);
+    }
+  }, [token]);
+
+  const handleToggleActive = async (id: string) => {
+    if (!token) return;
+    const prod = products.find((p) => p.id === id);
+    if (!prod) return;
+
+    try {
+      const response = await fetch(`http://localhost:3000/products/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          isActive: !prod.active,
+        }),
+      });
+
+      if (response.ok) {
+        refreshData(token);
+      } else {
+        console.error("Failed to toggle product active status");
+      }
+    } catch (err) {
+      console.error("Error toggling product status:", err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!token) return;
     if (confirm("Are you sure you want to delete this product?")) {
-      setProducts((prev) => prev.filter((p) => p.id !== id));
+      try {
+        const response = await fetch(`http://localhost:3000/products/${id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          refreshData(token);
+        } else {
+          console.error("Failed to delete product");
+        }
+      } catch (err) {
+        console.error("Error deleting product:", err);
+      }
     }
   };
 
@@ -40,30 +150,87 @@ export default function ProductsPage() {
     setViewMode(mode);
   };
 
-  const handleSaveProduct = (productForm: ProductFormData) => {
-    if (productForm.id) {
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === productForm.id
-            ? {
-                ...p,
-                ...productForm,
-                imageUrl: p.imageUrl,
-                sizes: p.sizes,
-                defaultSize: p.defaultSize,
-              }
-            : p
-        )
-      );
-    } else {
-      const newProduct: Product = {
-        ...productForm,
-        id: Math.random().toString(36).substring(2, 9),
-        imageUrl: DEFAULT_PRODUCT_IMAGE,
-        sizes: ["Small", "Large"],
-        defaultSize: "Small",
-      };
-      setProducts((prev) => [...prev, newProduct]);
+  const handleSaveProduct = async (productForm: any) => {
+    if (!token) return;
+    try {
+      let imageUrl = productForm.imageFile ? "" : (selectedProduct?.imageUrl || "");
+      if (imageUrl.startsWith("http://localhost:3000")) {
+        imageUrl = imageUrl.replace("http://localhost:3000", "");
+      }
+
+      if (productForm.imageFile) {
+        const formData = new FormData();
+        formData.append("image", productForm.imageFile);
+
+        const uploadRes = await fetch("http://localhost:3000/products/upload-image", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json();
+          imageUrl = uploadData.imageUrl;
+        } else {
+          console.error("Failed to upload product image");
+        }
+      }
+
+      const taxRateValue = parseFloat(productForm.tax.replace("%", "")) || 0;
+
+      if (productForm.id) {
+        const response = await fetch(`http://localhost:3000/products/${productForm.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: productForm.name,
+            price: productForm.price,
+            unitOfMeasure: productForm.uom,
+            taxRate: taxRateValue,
+            categoryId: productForm.categoryId,
+            imageUrl: imageUrl || undefined,
+            isActive: productForm.active,
+          }),
+        });
+
+        if (response.ok) {
+          refreshData(token);
+        } else {
+          const err = await response.json();
+          alert(`Error: ${err.message || "Failed to update product"}`);
+        }
+      } else {
+        const response = await fetch("http://localhost:3000/products", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: productForm.name,
+            price: productForm.price,
+            unitOfMeasure: productForm.uom,
+            taxRate: taxRateValue,
+            categoryId: productForm.categoryId,
+            imageUrl: imageUrl || undefined,
+            isKdsVisible: true,
+          }),
+        });
+
+        if (response.ok) {
+          refreshData(token);
+        } else {
+          const err = await response.json();
+          alert(`Error: ${err.message || "Failed to create product"}`);
+        }
+      }
+    } catch (err) {
+      console.error("Error saving product:", err);
     }
   };
 
@@ -99,6 +266,7 @@ export default function ProductsPage() {
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveProduct}
           product={selectedProduct}
+          categories={categories}
         />
       )}
     </div>

@@ -19,7 +19,7 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
     <div
       role="tablist"
       aria-label="Product view mode"
-      className="relative z-10 flex items-stretch h-[40px] p-1 bg-[#F1ECE4] border border-[#D7CABD] rounded-[14px] select-none min-w-[180px]"
+      className="relative z-10 flex items-stretch h-[40px] p-1 bg-surface border border-border-custom rounded-[14px] select-none min-w-[180px] theme-transition"
     >
       {VIEW_OPTIONS.map(({ mode, label, icon: Icon }) => {
         const isActive = value === mode;
@@ -32,8 +32,8 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
             onClick={() => onChange(mode)}
             className={`flex flex-1 items-center justify-center gap-1.5 min-h-[32px] rounded-[10px] text-[14px] font-semibold transition-all duration-200 cursor-pointer ${
               isActive
-                ? "bg-[#C9783A] text-white shadow-sm"
-                : "bg-transparent text-[#7B6858] hover:text-text-heading"
+                ? "bg-primary text-white shadow-sm"
+                : "bg-transparent text-text-muted hover:text-text-heading"
             }`}
           >
             <Icon size={18} strokeWidth={1.75} />

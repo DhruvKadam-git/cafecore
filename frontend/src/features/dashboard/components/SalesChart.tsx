@@ -8,20 +8,14 @@ interface ChartDataPoint {
   orders: number;
 }
 
-const chartData: ChartDataPoint[] = [
-  { day: "Jun 7", sales: 1950, orders: 135 },
-  { day: "Jun 8", sales: 1350, orders: 98 },
-  { day: "Jun 9", sales: 1300, orders: 92 },
-  { day: "Jun 10", sales: 1750, orders: 120 },
-  { day: "Jun 11", sales: 1780, orders: 118 },
-  { day: "Jun 12", sales: 2100, orders: 145 },
-  { day: "Jun 13", sales: 450, orders: 40 },
-];
+interface SalesChartProps {
+  data?: ChartDataPoint[];
+  isLoading?: boolean;
+}
 
-export function SalesChart() {
+export function SalesChart({ data = [], isLoading = false }: SalesChartProps) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
-  // Layout geometry adjusted to fit h-[440px] card container
   const svgWidth = 680;
   const svgHeight = 310;
   const paddingLeft = 45;
@@ -32,18 +26,37 @@ export function SalesChart() {
   const chartWidth = svgWidth - paddingLeft - paddingRight;
   const chartHeight = svgHeight - paddingTop - paddingBottom;
 
-  const maxVal = 2200;
+  if (isLoading) {
+    return (
+      <div className="bg-surface border border-border-custom rounded-[20px] p-6 flex items-center justify-center shadow-[0_1px_1px_rgba(0,0,0,0.03)] h-[440px] theme-transition">
+        <div className="text-text-muted animate-pulse font-semibold">Loading sales trend...</div>
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="bg-surface border border-border-custom rounded-[20px] p-6 flex flex-col items-center justify-center shadow-[0_1px_1px_rgba(0,0,0,0.03)] h-[440px] theme-transition">
+        <span className="text-text-muted font-semibold">No sales trend data available</span>
+        <p className="text-[12px] text-text-muted/60 mt-1">Try check-ins later.</p>
+      </div>
+    );
+  }
+
+  // Calculate dynamic max value
+  const allValues = data.map((d) => Math.max(d.sales, d.orders));
+  const maxVal = Math.max(...allValues, 100);
 
   const getX = (index: number) => {
-    return paddingLeft + (index / (chartData.length - 1)) * chartWidth;
+    return paddingLeft + (index / Math.max(data.length - 1, 1)) * chartWidth;
   };
 
   const getY = (val: number) => {
     return paddingTop + (1 - val / maxVal) * chartHeight;
   };
 
-  const orangePoints = chartData.map((d, i) => [getX(i), getY(d.sales)] as [number, number]);
-  const greenPoints = chartData.map((d, i) => [getX(i), getY(d.orders)] as [number, number]);
+  const orangePoints = data.map((d, i) => [getX(i), getY(d.sales)] as [number, number]);
+  const greenPoints = data.map((d, i) => [getX(i), getY(d.orders)] as [number, number]);
 
   const getBezierPath = (points: [number, number][]) => {
     return points.reduce((acc, point, i, arr) => {
@@ -60,11 +73,16 @@ export function SalesChart() {
   const orangePath = getBezierPath(orangePoints);
   const greenPath = getBezierPath(greenPoints);
 
-  const yTicks = [0, 550, 1100, 1650, 2200];
+  const yTicks = [
+    0,
+    Math.round(maxVal * 0.25),
+    Math.round(maxVal * 0.5),
+    Math.round(maxVal * 0.75),
+    Math.round(maxVal),
+  ];
 
   return (
-    <div className="bg-[#F7F3ED] border border-[#D8CCBF] rounded-[20px] p-6 flex flex-col justify-between hover:translate-y-[-2px] transition-all duration-200 shadow-[0_1px_1px_rgba(0,0,0,0.03)] h-[440px] relative">
-      
+    <div className="bg-surface border border-border-custom rounded-[20px] p-6 flex flex-col justify-between hover:translate-y-[-2px] transition-all duration-200 shadow-[0_1px_1px_rgba(0,0,0,0.03)] h-[440px] relative theme-transition">
       {/* Title & Legend row */}
       <div className="flex items-center justify-between mb-2 select-none">
         <h3 className="text-[18px] font-bold text-text-heading font-sans">
@@ -72,11 +90,11 @@ export function SalesChart() {
         </h3>
         <div className="flex items-center gap-4 text-xs font-semibold">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-0.5 rounded-full bg-[#CB7637] border-t-2 border-[#CB7637]"></span>
+            <span className="w-3 h-0.5 rounded-full bg-primary border-t-2 border-primary"></span>
             <span className="text-text-body">Sales</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-0.5 rounded-full bg-[#78964E] border-t-2 border-[#78964E]"></span>
+            <span className="w-3 h-0.5 rounded-full bg-success border-t-2 border-success"></span>
             <span className="text-text-body">Orders</span>
           </div>
         </div>
@@ -98,7 +116,7 @@ export function SalesChart() {
                   y1={y}
                   x2={svgWidth - paddingRight}
                   y2={y}
-                  stroke="#D8CCBF"
+                  stroke="var(--border-color)"
                   strokeWidth={0.75}
                   strokeDasharray="4 4"
                 />
@@ -108,18 +126,18 @@ export function SalesChart() {
                   textAnchor="end"
                   className="fill-text-muted text-[11px] font-semibold font-sans"
                 >
-                  {tick}
+                  {tick >= 1000 ? `${(tick / 1000).toFixed(1)}k` : tick}
                 </text>
               </g>
             );
           })}
 
           {/* X axis day labels */}
-          {chartData.map((d, i) => {
+          {data.map((d, i) => {
             const x = getX(i);
             return (
               <text
-                key={d.day}
+                key={`${d.day}-${i}`}
                 x={x}
                 y={svgHeight - 8}
                 textAnchor="middle"
@@ -134,7 +152,7 @@ export function SalesChart() {
           <path
             d={orangePath}
             fill="none"
-            stroke="#CB7637"
+            stroke="var(--primary)"
             strokeWidth={3}
             strokeLinecap="round"
             className="transition-all duration-300"
@@ -142,20 +160,20 @@ export function SalesChart() {
           <path
             d={greenPath}
             fill="none"
-            stroke="#78964E"
+            stroke="var(--success)"
             strokeWidth={3}
             strokeLinecap="round"
             className="transition-all duration-300"
           />
 
           {/* Hover Indicator Vertical Line */}
-          {hoveredIdx !== null && (
+          {hoveredIdx !== null && hoveredIdx < data.length && (
             <line
               x1={getX(hoveredIdx)}
               y1={paddingTop}
               x2={getX(hoveredIdx)}
               y2={svgHeight - paddingBottom}
-              stroke="#D8CCBF"
+              stroke="var(--border-color)"
               strokeWidth={1.5}
               strokeDasharray="2 2"
             />
@@ -168,7 +186,7 @@ export function SalesChart() {
               cx={pt[0]}
               cy={pt[1]}
               r={hoveredIdx === i ? 6 : 4}
-              className="fill-[#CB7637] stroke-white stroke-2 cursor-pointer transition-all duration-150"
+              className="fill-primary stroke-white stroke-2 cursor-pointer transition-all duration-150"
               onMouseEnter={() => setHoveredIdx(i)}
               onMouseLeave={() => setHoveredIdx(null)}
             />
@@ -181,16 +199,16 @@ export function SalesChart() {
               cx={pt[0]}
               cy={pt[1]}
               r={hoveredIdx === i ? 6 : 4}
-              className="fill-[#78964E] stroke-white stroke-2 cursor-pointer transition-all duration-150"
+              className="fill-success stroke-white stroke-2 cursor-pointer transition-all duration-150"
               onMouseEnter={() => setHoveredIdx(i)}
               onMouseLeave={() => setHoveredIdx(null)}
             />
           ))}
 
           {/* Invisible hover regions */}
-          {chartData.map((_, i) => {
+          {data.map((_, i) => {
             const x = getX(i);
-            const w = chartWidth / (chartData.length - 1);
+            const w = chartWidth / Math.max(data.length - 1, 1);
             return (
               <rect
                 key={`hit-${i}`}
@@ -208,9 +226,9 @@ export function SalesChart() {
         </svg>
 
         {/* Floating Custom HTML Tooltip */}
-        {hoveredIdx !== null && (
+        {hoveredIdx !== null && hoveredIdx < data.length && (
           <div
-            className="absolute bg-[#FDFBF9] border border-[#D8CCBF] rounded-xl p-3 px-4 shadow-[0_4px_12px_rgba(0,0,0,0.06)] pointer-events-none transition-all duration-150 z-20 font-sans min-w-[120px]"
+            className="absolute bg-surface border border-border-custom rounded-xl p-3 px-4 shadow-[0_4px_12px_rgba(0,0,0,0.06)] pointer-events-none transition-all duration-150 z-20 font-sans min-w-[140px] theme-transition"
             style={{
               left: `${((getX(hoveredIdx) - paddingLeft) / chartWidth) * 82 + 8}%`,
               top: "60px",
@@ -218,16 +236,18 @@ export function SalesChart() {
             }}
           >
             <div className="text-[13px] font-bold text-text-heading mb-1.5 font-sans">
-              {chartData[hoveredIdx].day}
+              {data[hoveredIdx].day}
             </div>
             <div className="flex flex-col gap-1 text-[12px] font-semibold font-sans">
-              <div className="text-[#CB7637] flex items-center justify-between gap-4">
-                <span>revenue :</span>
-                <span>{chartData[hoveredIdx].sales}</span>
+              <div className="text-primary flex items-center justify-between gap-4">
+                <span>Revenue:</span>
+                <span>
+                  ${data[hoveredIdx].sales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
               </div>
-              <div className="text-[#78964E] flex items-center justify-between gap-4">
-                <span>orders :</span>
-                <span>{chartData[hoveredIdx].orders}</span>
+              <div className="text-success flex items-center justify-between gap-4">
+                <span>Orders:</span>
+                <span>{data[hoveredIdx].orders}</span>
               </div>
             </div>
           </div>

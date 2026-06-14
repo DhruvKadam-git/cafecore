@@ -21,16 +21,85 @@ export class PaymentsService {
   }
 
   async create(createPaymentDto: CreatePaymentDto) {
-    const { orderId, amount, method } = createPaymentDto;
+    const { orderId, amount, method, couponCode } = createPaymentDto;
 
-    return this.prisma.payment.create({
+    // Start transaction to create payment and mark order
+    const payment = await this.prisma.payment.create({
       data: {
         orderId,
         amount,
         method: String(method) as any,
-        status: 'PENDING',
+        status: 'COMPLETED',
       },
     });
+
+    // Increment coupon usage count if provided
+    if (couponCode) {
+      try {
+        const coupon = await this.prisma.coupon.findUnique({
+          where: { code: couponCode.toUpperCase() },
+        });
+        if (coupon) {
+          await this.prisma.coupon.update({
+            where: { id: coupon.id },
+            data: {
+              currentUsageCount: {
+                increment: 1,
+              },
+            },
+          });
+        }
+      } catch (err) {
+        console.error('Error incrementing coupon usage:', err);
+      }
+    }
+
+    const orderObj = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    let targetStatus = 'SENT_TO_KITCHEN';
+    let discountTotal = 0;
+    let grandTotal = amount;
+
+    if (orderObj) {
+      if (
+        orderObj.status === 'SENT_TO_KITCHEN' ||
+        orderObj.status === 'PREPARING' ||
+        orderObj.status === 'COMPLETED' ||
+        orderObj.status === 'PAID'
+      ) {
+        targetStatus = orderObj.status;
+      } else {
+        targetStatus = 'SENT_TO_KITCHEN';
+      }
+
+      const sub = Number(orderObj.subtotal);
+      const tax = Number(orderObj.taxTotal);
+      const originalTotal = sub + tax;
+      discountTotal = Math.max(0, originalTotal - amount);
+      grandTotal = amount;
+    }
+
+    const order = await this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: targetStatus as any,
+        paidAt: new Date(),
+        discountTotal: discountTotal,
+        grandTotal: grandTotal,
+      },
+    });
+
+    // Release table
+    await this.prisma.restaurantTable.update({
+      where: { id: order.tableId },
+      data: {
+        status: 'AVAILABLE',
+      },
+    });
+
+    return payment;
   }
 
   async update(id: string, updatePaymentDto: UpdatePaymentDto) {

@@ -6,7 +6,7 @@ import { ResourceNotFoundException } from '../../../common/exceptions/custom.exc
 
 @Injectable()
 export class FloorsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async findAll() {
     return this.prisma.floor.findMany({

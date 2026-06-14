@@ -33,7 +33,7 @@ export function ProductAvatar({ image, name, categoryColor, size = 44, fontSize 
   const letter = name.trim() ? name.trim()[0].toUpperCase() : "?";
   const bg = letterAvatarBg(name, categoryColor);
 
-  if (image) {
+  if (image && typeof image === "string" && image.trim() !== "") {
     // External URL (Unsplash etc.) or base64 upload
     return (
       <div
@@ -127,14 +127,14 @@ export function ProductModal({
       />
 
       {/* Sheet */}
-      <div className={`relative bg-[#F7F3ED] w-full sm:max-w-[500px] sm:rounded-[24px] rounded-t-[24px] shadow-2xl overflow-hidden transition-all duration-200 ${
+      <div className={`relative bg-surface w-full sm:max-w-[500px] sm:rounded-[24px] rounded-t-[24px] shadow-2xl overflow-hidden transition-all duration-200 ${
         visible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
       }`}>
         {/* Color accent */}
         <div className="h-[5px] w-full" style={{ backgroundColor: categoryColor }} />
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#D8CCBF]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-custom">
           <div>
             <h3 className="text-[18px] font-bold text-text-heading">
               {mode === "add" ? "Add Product" : "Edit Product"}
@@ -146,7 +146,7 @@ export function ProductModal({
               </span>
             </div>
           </div>
-          <button onClick={handleClose} className="w-9 h-9 rounded-[12px] flex items-center justify-center bg-[#F1ECE5] hover:bg-[#E8DECE] text-text-muted transition-colors">
+          <button onClick={handleClose} className="w-9 h-9 rounded-[12px] flex items-center justify-center bg-surface hover:bg-border-custom/30 text-text-muted transition-colors theme-transition">
             <X size={18} />
           </button>
         </div>
@@ -164,7 +164,7 @@ export function ProductModal({
                 {image && (
                   <button
                     onClick={() => setImage(null)}
-                    className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-[#D55C4C] flex items-center justify-center shadow-md hover:bg-[#C04A3C] transition-colors"
+                    className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-danger flex items-center justify-center shadow-md hover:brightness-105 transition-colors"
                   >
                     <Trash2 size={11} className="text-white" />
                   </button>
@@ -174,12 +174,12 @@ export function ProductModal({
               {/* Upload area */}
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1 border-2 border-dashed border-[#D8CCBF] hover:border-[#CB7637] rounded-[14px] px-4 py-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-colors group"
+                className="flex-1 border-2 border-dashed border-border-custom hover:border-primary rounded-[14px] px-4 py-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-colors group"
               >
-                <div className="w-8 h-8 rounded-full bg-[#F1ECE5] group-hover:bg-[#FBECE1] flex items-center justify-center transition-colors">
-                  <Upload size={15} className="text-text-muted group-hover:text-[#CB7637] transition-colors" />
+                <div className="w-8 h-8 rounded-full bg-surface group-hover:bg-primary/10 flex items-center justify-center transition-colors theme-transition">
+                  <Upload size={15} className="text-text-muted group-hover:text-primary transition-colors" />
                 </div>
-                <p className="text-[13px] font-semibold text-text-muted group-hover:text-[#CB7637] transition-colors text-center">
+                <p className="text-[13px] font-semibold text-text-muted group-hover:text-primary transition-colors text-center">
                   {image ? "Change image" : "Upload image"}
                 </p>
                 <p className="text-[11px] text-text-muted text-center">PNG, JPG up to 5MB</p>
@@ -202,25 +202,25 @@ export function ProductModal({
           {/* Name */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[13px] font-bold text-text-heading">
-              Name <span className="text-[#D55C4C]">*</span>
+              Name <span className="text-danger">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={e => { setName(e.target.value); setErrors(p => ({ ...p, name: "" })); }}
               placeholder="e.g. Espresso Shot"
-              className={`bg-[#F1ECE5] border rounded-[12px] px-4 py-3 text-[14px] font-semibold text-text-heading placeholder:text-text-muted outline-none transition-colors ${
-                errors.name ? "border-[#D55C4C]" : "border-[#D8CCBF] focus:border-[#CB7637]"
+              className={`bg-surface border rounded-[12px] px-4 py-3 text-[14px] font-semibold text-text-heading placeholder:text-text-muted outline-none transition-colors ${
+                errors.name ? "border-danger" : "border-border-custom focus:border-primary"
               }`}
             />
-            {errors.name && <p className="text-[12px] font-semibold text-[#D55C4C]">{errors.name}</p>}
+            {errors.name && <p className="text-[12px] font-semibold text-danger">{errors.name}</p>}
           </div>
 
           {/* Price + Tax */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-[13px] font-bold text-text-heading">
-                Price <span className="text-[#D55C4C]">*</span>
+                Price <span className="text-danger">*</span>
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[14px] font-bold text-text-muted">$</span>
@@ -231,12 +231,12 @@ export function ProductModal({
                   value={price}
                   onChange={e => { setPrice(e.target.value); setErrors(p => ({ ...p, price: "" })); }}
                   placeholder="0.00"
-                  className={`w-full bg-[#F1ECE5] border rounded-[12px] pl-7 pr-3 py-3 text-[14px] font-semibold text-text-heading outline-none transition-colors ${
-                    errors.price ? "border-[#D55C4C]" : "border-[#D8CCBF] focus:border-[#CB7637]"
+                  className={`w-full bg-surface border rounded-[12px] pl-7 pr-3 py-3 text-[14px] font-semibold text-text-heading outline-none transition-colors ${
+                    errors.price ? "border-danger" : "border-border-custom focus:border-primary"
                   }`}
                 />
               </div>
-              {errors.price && <p className="text-[12px] font-semibold text-[#D55C4C]">{errors.price}</p>}
+              {errors.price && <p className="text-[12px] font-semibold text-danger">{errors.price}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -247,7 +247,7 @@ export function ProductModal({
                     key={t}
                     onClick={() => setTax(t)}
                     className={`px-2.5 py-1.5 rounded-[9px] text-[12px] font-bold transition-all ${
-                      tax === t ? "text-white shadow-sm" : "bg-[#F1ECE5] text-text-muted hover:text-text-body"
+                      tax === t ? "text-white shadow-sm" : "bg-surface text-text-muted hover:text-text-body"
                     }`}
                     style={{ backgroundColor: tax === t ? categoryColor : undefined }}
                   >
@@ -267,7 +267,7 @@ export function ProductModal({
                   key={u}
                   onClick={() => setUnitOfMeasure(u)}
                   className={`px-3 py-1.5 rounded-[10px] text-[12px] font-semibold transition-all border ${
-                    unitOfMeasure === u ? "text-white border-transparent" : "bg-[#F1ECE5] text-text-muted border-transparent hover:border-[#D8CCBF]"
+                    unitOfMeasure === u ? "text-white border-transparent" : "bg-surface text-text-muted border-transparent hover:border-border-custom"
                   }`}
                   style={{ backgroundColor: unitOfMeasure === u ? categoryColor : undefined }}
                 >
@@ -285,26 +285,29 @@ export function ProductModal({
               onChange={e => setDescription(e.target.value)}
               placeholder="Short description of the product…"
               rows={2}
-              className="bg-[#F1ECE5] border border-[#D8CCBF] rounded-[12px] px-4 py-3 text-[14px] font-medium text-text-heading placeholder:text-text-muted outline-none focus:border-[#CB7637] transition-colors resize-none"
+              className="bg-surface border border-border-custom rounded-[12px] px-4 py-3 text-[14px] font-medium text-text-heading placeholder:text-text-muted outline-none focus:border-primary transition-colors resize-none theme-transition"
             />
           </div>
 
           {/* Status */}
-          <div className="flex items-center justify-between bg-[#F1ECE5] rounded-[14px] px-4 py-3">
+          <div className="flex items-center justify-between bg-surface rounded-[14px] px-4 py-3 theme-transition">
             <div>
               <p className="text-[13px] font-bold text-text-heading">Status</p>
               <p className="text-[12px] text-text-muted">Active products appear in the POS</p>
             </div>
             <button
+              type="button"
+              role="switch"
+              aria-checked={status === "Active"}
               onClick={() => setStatus(s => s === "Active" ? "Inactive" : "Active")}
-              className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${status === "Active" ? "bg-[#7C9C57]" : "bg-[#D8CCBF]"}`}
+              className={`relative inline-flex shrink-0 cursor-pointer h-[26px] w-12 rounded-full p-[4px] transition-colors duration-200 ${status === "Active" ? "bg-success" : "bg-border-custom"}`}
             >
-              <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${status === "Active" ? "translate-x-6" : "translate-x-0.5"}`} />
+              <span className={`block h-[18px] w-[18px] rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${status === "Active" ? "translate-x-[22px]" : "translate-x-0"}`} />
             </button>
           </div>
 
           {/* Preview */}
-          <div className="bg-[#F1ECE5] border border-[#D8CCBF] rounded-[14px] px-4 py-3">
+          <div className="bg-surface border border-border-custom rounded-[14px] px-4 py-3 theme-transition">
             <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2">Preview</p>
             <div className="flex items-center gap-3">
               <ProductAvatar image={image} name={name} categoryColor={categoryColor} size={44} fontSize={18} radius={12} />
@@ -314,7 +317,7 @@ export function ProductModal({
               </div>
               <div className="text-right shrink-0">
                 <p className="text-[15px] font-bold text-text-heading">${price ? parseFloat(price).toFixed(2) : "0.00"}</p>
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${status === "Active" ? "bg-[#E7F3DD] text-[#7C9C57]" : "bg-[#F1ECE5] text-text-muted"}`}>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${status === "Active" ? "bg-success/10 text-success" : "bg-surface text-text-muted"}`}>
                   {status}
                 </span>
               </div>
@@ -323,19 +326,19 @@ export function ProductModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 pb-6 pt-3 border-t border-[#D8CCBF] flex gap-3">
+        <div className="px-6 pb-6 pt-3 border-t border-border-custom flex gap-3">
           {mode === "edit" && onDelete && (
             !showDeleteConfirm ? (
-              <button onClick={() => setShowDeleteConfirm(true)} className="px-4 py-3 rounded-[14px] bg-[#FFE3DE] hover:bg-[#FFCFC8] text-[#D55C4C] text-[13px] font-bold transition-colors">
+              <button onClick={() => setShowDeleteConfirm(true)} className="px-4 py-3 rounded-[14px] bg-danger/10 hover:bg-danger/20 text-danger text-[13px] font-bold transition-colors">
                 Delete
               </button>
             ) : (
-              <button onClick={onDelete} className="px-4 py-3 rounded-[14px] bg-[#D55C4C] hover:bg-[#C04A3C] text-white text-[13px] font-bold transition-colors">
+              <button onClick={onDelete} className="px-4 py-3 rounded-[14px] bg-danger hover:brightness-105 text-white text-[13px] font-bold transition-colors">
                 Confirm Delete
               </button>
             )
           )}
-          <button onClick={handleClose} className="flex-1 bg-[#F1ECE5] hover:bg-[#E8DECE] text-text-heading text-[14px] font-bold py-3 rounded-[14px] transition-colors">
+          <button onClick={handleClose} className="flex-1 bg-surface hover:bg-border-custom/30 text-text-heading text-[14px] font-bold py-3 rounded-[14px] transition-colors theme-transition">
             Cancel
           </button>
           <button

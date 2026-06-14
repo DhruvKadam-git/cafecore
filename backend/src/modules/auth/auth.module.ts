@@ -19,10 +19,10 @@ import { UsersModule } from '../users/users.module';
           configService.get<string>('JWT_SECRET') ||
           'hackathon-secret-key-change-in-production',
         signOptions: {
-          expiresIn: parseInt(
-            String(configService.get<string>('JWT_EXPIRES_IN') || '604800'),
-            10,
-          ),
+          expiresIn: (() => {
+            const val = configService.get<string>('JWT_EXPIRES_IN') || '7d';
+            return /^\d+$/.test(val) ? parseInt(val, 10) : (val as any);
+          })(),
         },
       }),
     }),

@@ -22,27 +22,27 @@ export function StatCard({
 }: StatCardProps) {
   const themeStyles = {
     orange: {
-      bg: "bg-[#FBECE1]",
-      text: "text-[#CB7637]",
+      bg: "bg-primary/10",
+      text: "text-primary",
     },
     green: {
-      bg: "bg-[#ECF1E7]",
-      text: "text-[#78964E]",
+      bg: "bg-success/10",
+      text: "text-success",
     },
     gold: {
-      bg: "bg-[#FAF2E1]",
-      text: "text-[#D6A144]",
+      bg: "bg-gold/10",
+      text: "text-gold",
     },
     brown: {
-      bg: "bg-[#F1ECE6]",
-      text: "text-[#866443]",
+      bg: "bg-sidebar-bg/10",
+      text: "text-sidebar-bg",
     },
   };
 
   const selectedTheme = themeStyles[iconTheme];
 
   return (
-    <div className="h-[110px] bg-[#F6F2EC] border border-[#DCCFC1] rounded-[18px] p-4 flex items-center justify-between hover:translate-y-[-2px] transition-all duration-200 shadow-[0_1px_1px_rgba(0,0,0,0.03)]">
+    <div className="h-[110px] bg-surface border border-border-custom rounded-[18px] p-4 flex items-center justify-between hover:translate-y-[-2px] transition-all duration-200 shadow-[0_1px_1px_rgba(0,0,0,0.03)] theme-transition">
       <div className="flex flex-col justify-between h-full py-1">
         <span className="text-[13px] font-semibold text-text-muted font-sans select-none uppercase tracking-wider">
           {title}
@@ -52,7 +52,7 @@ export function StatCard({
         </span>
         <span
           className={`text-[12px] font-semibold mt-1 font-sans ${
-            isPositive ? "text-[#7C9C57]" : "text-[#D55C4C]"
+            isPositive ? "text-success" : "text-danger"
           }`}
         >
           {deltaText}

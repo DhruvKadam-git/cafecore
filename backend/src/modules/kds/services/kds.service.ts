@@ -8,11 +8,26 @@ export class KdsService {
   constructor(private prisma: PrismaService) {}
 
   async getOrderQueue() {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
     return this.prisma.order.findMany({
       where: {
-        status: {
-          in: ['CONFIRMED', 'PREPARING'],
-        },
+        OR: [
+          {
+            status: {
+              in: ['SENT_TO_KITCHEN', 'PREPARING'],
+            },
+          },
+          {
+            status: {
+              in: ['COMPLETED', 'PAID'],
+            },
+            updatedAt: {
+              gte: startOfToday,
+            },
+          },
+        ],
       },
       select: {
         id: true,
@@ -20,11 +35,12 @@ export class KdsService {
         customerId: true,
         tableId: true,
         createdAt: true,
-        items: {
+        updatedAt: true,
+        orderItems: {
           select: {
             id: true,
             quantity: true,
-            unitPrice: true,
+            unitPriceSnapshot: true,
             product: {
               select: {
                 id: true,
@@ -50,11 +66,11 @@ export class KdsService {
         customerId: true,
         tableId: true,
         createdAt: true,
-        items: {
+        orderItems: {
           select: {
             id: true,
             quantity: true,
-            unitPrice: true,
+            unitPriceSnapshot: true,
             product: {
               select: {
                 id: true,
@@ -86,17 +102,24 @@ export class KdsService {
       throw new ResourceNotFoundException('Order');
     }
 
+    let dbStatus = String(updateStatusDto.status).toUpperCase();
+    if (dbStatus === 'CONFIRMED' || dbStatus === 'PENDING') {
+      dbStatus = 'SENT_TO_KITCHEN';
+    } else if (dbStatus === 'READY' || dbStatus === 'SERVED') {
+      dbStatus = 'COMPLETED';
+    }
+
     return this.prisma.order.update({
       where: { id: orderId },
       data: {
-        status: String(updateStatusDto.status) as any,
+        status: dbStatus as any,
       },
       select: {
         id: true,
         status: true,
         customerId: true,
         tableId: true,
-        items: {
+        orderItems: {
           select: {
             id: true,
             quantity: true,
@@ -124,14 +147,14 @@ export class KdsService {
     return this.prisma.order.update({
       where: { id: orderId },
       data: {
-        status: 'READY' as any,
+        status: 'COMPLETED' as any,
       },
       select: {
         id: true,
         status: true,
         customerId: true,
         tableId: true,
-        items: {
+        orderItems: {
           select: {
             id: true,
             quantity: true,
