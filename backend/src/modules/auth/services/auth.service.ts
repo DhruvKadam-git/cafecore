@@ -1,0 +1,112 @@
+﻿import {
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  ConflictException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import * as bcrypt from 'bcrypt';
+import { UsersService } from '../../users/services/users.service';
+import { SignupDto } from '../dto/signup.dto';
+import { LoginDto } from '../dto/login.dto';
+import { JwtPayload } from '../strategies/jwt.strategy';
+
+@Injectable()
+export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+  private readonly saltRounds = 10;
+
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
+  ) {}
+
+  async signup(signupDto: SignupDto) {
+    this.logger.log('Signup attempt for email: ' + signupDto.email);
+
+    const existingUser = await this.usersService.findByEmail(signupDto.email);
+    if (existingUser) {
+      this.logger.warn('Signup failed: Email already exists: ' + signupDto.email);
+      throw new ConflictException('Email already registered. Please use a different email or try logging in.');
+    }
+
+    const user = await this.usersService.create({
+      name: signupDto.name,
+      email: signupDto.email,
+      password: signupDto.password,
+      role: 'EMPLOYEE' as any,
+    });
+
+    this.logger.log('User created successfully: ' + user.email);
+
+    return {
+      message: 'User created successfully',
+      user,
+    };
+  }
+
+  async login(loginDto: LoginDto) {
+    this.logger.log('Login attempt for email: ' + loginDto.email);
+
+    const user = await this.usersService.findByEmail(loginDto.email);
+    if (!user) {
+      this.logger.warn('Login failed: User not found: ' + loginDto.email);
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    const isPasswordValid = await bcrypt.compare(loginDto.password, user.passwordHash);
+    if (!isPasswordValid) {
+      this.logger.warn('Login failed: Invalid password for user: ' + loginDto.email);
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    if (user.status === 'ARCHIVED') {
+      this.logger.warn('Login failed: User account archived: ' + loginDto.email);
+      throw new ForbiddenException('Your account has been archived. Please contact support.');
+    }
+
+    const accessToken = await this._generateJwt(user.id, user.email, user.role);
+
+    this.logger.log('Login successful for user: ' + user.email);
+
+    return {
+      accessToken,
+      user: this._sanitizeUser(user),
+    };
+  }
+
+  async getCurrentUser(userId: string) {
+    this.logger.debug('Fetching current user: ' + userId);
+
+    const user = await this.usersService.findActiveById(userId);
+    if (!user) {
+      this.logger.warn('Current user not found or archived: ' + userId);
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+
+  private async _hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, this.saltRounds);
+  }
+
+  private async _generateJwt(userId: string, email: string, role: string): Promise<string> {
+    const payload: JwtPayload = {
+      sub: userId,
+      email,
+      role,
+    };
+
+    return this.jwtService.sign(payload);
+  }
+
+  private _sanitizeUser(user: any) {
+    const { passwordHash, ...sanitized } = user;
+    return sanitized;
+  }
+}

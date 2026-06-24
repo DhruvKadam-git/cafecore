@@ -1,0 +1,36 @@
+"use client";
+
+import React from "react";
+import { Plus } from "lucide-react";
+import { MarketingTab } from "@/lib/marketing-types";
+import { MarketingTabs } from "./MarketingTabs";
+
+interface MarketingToolbarProps {
+  activeTab: MarketingTab;
+  onTabChange: (tab: MarketingTab) => void;
+  onNewClick: () => void;
+}
+
+export function MarketingToolbar({
+  activeTab,
+  onTabChange,
+  onNewClick,
+}: MarketingToolbarProps) {
+  const ctaLabel =
+    activeTab === "coupons" ? "New Coupon" : "New Promotion";
+
+  return (
+    <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 select-none">
+      <MarketingTabs value={activeTab} onChange={onTabChange} />
+
+      <button
+        type="button"
+        onClick={onNewClick}
+        className="h-[42px] px-5 rounded-[14px] bg-primary text-white text-[15px] font-semibold flex items-center gap-2 hover:brightness-[1.04] hover:translate-y-[-1px] transition-all duration-200 cursor-pointer"
+      >
+        <Plus size={18} strokeWidth={2.5} />
+        <span>{ctaLabel}</span>
+      </button>
+    </div>
+  );
+}

@@ -1,0 +1,222 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  EMPLOYEE
+}
+
+enum UserStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  SERVED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  UPI
+  WALLET
+}
+
+enum PromotionType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  BOGO
+}
+
+model User {
+  id            String      @id @default(uuid())
+  name          String
+  email         String      @unique
+  passwordHash  String
+  role          UserRole    @default(EMPLOYEE)
+  status        UserStatus  @default(ACTIVE)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("users")
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  color     String?
+  imageUrl  String?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id              String      @id @default(uuid())
+  categoryId      String
+  category        Category    @relation(fields: [categoryId], references: [id])
+  name            String
+  description     String?
+  imageUrl        String?
+  price           Decimal     @db.Decimal(10, 2)
+  taxRate         Decimal     @db.Decimal(5, 2) @default(0.00)
+  unitOfMeasure   String?
+  preparationTime Int?
+  isKdsVisible    Boolean     @default(true)
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  orderItems      OrderItem[]
+
+  @@index([categoryId])
+  @@map("products")
+}
+
+model Floor {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  floorNumber Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  tables      Table[]
+
+  @@map("floors")
+}
+
+model Table {
+  id          String    @id @default(uuid())
+  name        String
+  floorId     String
+  capacity    Int
+  description String?
+  status      String    @default("available")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  floor       Floor     @relation(fields: [floorId], references: [id])
+  orders      Order[]
+
+  @@map("tables")
+}
+
+model Customer {
+  id        String    @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  address   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  orders    Order[]
+
+  @@map("customers")
+}
+
+model Order {
+  id          String        @id @default(uuid())
+  customerId  String?
+  tableId     String?
+  status      OrderStatus   @default(PENDING)
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  customer    Customer?     @relation(fields: [customerId], references: [id])
+  table       Table?        @relation(fields: [tableId], references: [id])
+  items       OrderItem[]
+  payment     Payment?
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String    @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  unitPrice Float
+  createdAt DateTime  @default(now())
+  order     Order     @relation(fields: [orderId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Payment {
+  id        String          @id @default(uuid())
+  orderId   String          @unique
+  amount    Float
+  method    PaymentMethod
+  status    PaymentStatus   @default(PENDING)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  order     Order           @relation(fields: [orderId], references: [id])
+
+  @@map("payments")
+}
+
+model Coupon {
+  id                String    @id @default(uuid())
+  code              String    @unique
+  description       String
+  discountPercentage Float
+  minOrderAmount    Float?
+  expiryDate        DateTime
+  maxUsageCount     Int
+  currentUsageCount Int       @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("coupons")
+}
+
+model Promotion {
+  id        String        @id @default(uuid())
+  name      String
+  description String
+  type      PromotionType
+  value     Float
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("promotions")
+}
+
+model Session {
+  id        String    @id @default(uuid())
+  userId    String?
+  description String?
+  status    String    @default("active")
+  closedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("sessions")
+}

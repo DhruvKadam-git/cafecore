@@ -10,41 +10,40 @@ interface CategoryItem {
 }
 
 const categories: CategoryItem[] = [
-  { name: "Espresso", percentage: 35, color: "#C9783A", revenue: "$2,958" },
-  { name: "Cold Brew", percentage: 20, color: "#866443", revenue: "$1,690" },
-  { name: "Pastries", percentage: 18, color: "#D6A144", revenue: "$1,521" },
-  { name: "Sandwiches", percentage: 15, color: "#789658", revenue: "$1,268" },
-  { name: "Tea", percentage: 12, color: "#A86D4D", revenue: "$1,014" },
+  { name: "Espresso", percentage: 35, color: "var(--primary)", revenue: "$2,958" },
+  { name: "Cold Brew", percentage: 20, color: "var(--sidebar)", revenue: "$1,690" },
+  { name: "Pastries", percentage: 18, color: "var(--gold)", revenue: "$1,521" },
+  { name: "Sandwiches", percentage: 15, color: "var(--success)", revenue: "$1,268" },
+  { name: "Tea", percentage: 12, color: "var(--primary)", revenue: "$1,014" },
 ];
 
 export function CategoryChart() {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
+  // Layout geometry adjusted to fit h-[440px] card container
   const radius = 80;
   const strokeWidth = 26;
   const circumference = 2 * Math.PI * radius; // Approx 502.65
 
   return (
-    <div className="bg-[#F7F3ED] border border-[#D8CCBF] rounded-[20px] p-6 flex flex-col justify-between hover:translate-y-[-2px] transition-all duration-200 shadow-[0_1px_1px_rgba(0,0,0,0.03)] h-[440px]">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-surface border border-border-custom rounded-[20px] p-6 flex flex-col hover:translate-y-[-2px] transition-all duration-200 shadow-[0_1px_1px_rgba(0,0,0,0.03)] h-[440px] theme-transition">
+      <div className="flex items-center justify-between mb-2 shrink-0">
         <h3 className="text-[18px] font-bold text-text-heading font-sans">
           Top Categories
         </h3>
       </div>
 
-      <div className="flex justify-center items-center my-2 relative">
+      <div className="relative flex-1 min-h-0 flex justify-center items-center">
         <svg
-          width="220"
-          height="220"
           viewBox="0 0 220 220"
-          className="transform -rotate-90 select-none overflow-visible"
+          className="max-h-[200px] max-w-[200px] w-full h-full transform -rotate-90 select-none overflow-visible"
         >
           <circle
             cx="110"
             cy="110"
             r={radius}
             fill="transparent"
-            stroke="#F1ECE5"
+            stroke="var(--surface)"
             strokeWidth={strokeWidth}
           />
 
@@ -85,13 +84,13 @@ export function CategoryChart() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 mt-4 select-none">
+      <div className="flex flex-col gap-1.5 mt-2 shrink-0 select-none">
         {categories.map((cat, idx) => {
           const isHovered = hoveredIdx === idx;
           return (
             <div
               key={cat.name}
-              className={`flex items-center justify-between py-1 px-2.5 rounded-xl transition-all duration-200 ${
+              className={`flex items-center justify-between py-0.5 px-2.5 rounded-xl transition-all duration-200 ${
                 isHovered ? "bg-white/80 shadow-sm scale-[1.02]" : "hover:bg-white/40"
               }`}
               onMouseEnter={() => setHoveredIdx(idx)}

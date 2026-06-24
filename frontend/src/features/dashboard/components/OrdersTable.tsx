@@ -1,38 +1,37 @@
 "use client";
 
 import React from "react";
+import { POSOrder } from "@/lib/pos-order-types";
 
-interface OrderRow {
-  id: string;
-  table: string;
-  staff: string;
-  amount: string;
-  status: "Paid" | "Draft" | "Cancelled";
+interface OrdersTableProps {
+  orders?: POSOrder[];
 }
 
-const ordersData: OrderRow[] = [
-  { id: "#0844", table: "Table 3", staff: "Jamie S.", amount: "$27.50", status: "Paid" },
-  { id: "#0843", table: "Table 7", staff: "Priya R.", amount: "$42.00", status: "Paid" },
-  { id: "#0842", table: "Bar", staff: "Jamie S.", amount: "$18.50", status: "Draft" },
-  { id: "#0841", table: "Table 2", staff: "Marcus T.", amount: "$31.00", status: "Paid" },
-  { id: "#0840", table: "Table 9", staff: "Priya R.", amount: "$15.50", status: "Cancelled" },
-];
-
-export function OrdersTable() {
+export function OrdersTable({ orders = [] }: OrdersTableProps) {
   const statusStyles = {
-    Paid: "bg-[#E7F3DD] text-[#7C9C57]",
-    Draft: "bg-[#FFF1D9] text-[#D6A144]",
-    Cancelled: "bg-[#FFE3DE] text-[#D55C4C]",
+    Paid: "bg-success/10 text-success",
+    Draft: "bg-gold/10 text-gold",
+    Cancelled: "bg-danger/10 text-danger",
   };
 
+  const rows = orders.length > 0
+    ? orders.map((o) => ({
+        id: o.orderNumber,
+        table: o.table,
+        staff: o.employee,
+        amount: `$${o.amount.toFixed(2)}`,
+        status: o.status,
+      }))
+    : [];
+
   return (
-    <div className="bg-[#F7F3ED] border border-[#D8CCBF] rounded-[20px] p-6 hover:translate-y-[-2px] transition-all duration-200 shadow-[0_1px_1px_rgba(0,0,0,0.03)] h-[440px] flex flex-col justify-between">
+    <div className="bg-surface border border-border-custom rounded-[20px] p-6 hover:translate-y-[-2px] transition-all duration-200 shadow-[0_1px_1px_rgba(0,0,0,0.03)] h-[440px] flex flex-col justify-between theme-transition">
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-[18px] font-bold text-text-heading font-sans">
             Recent Orders
           </h3>
-          <button className="text-[13px] font-semibold text-text-muted hover:text-primary transition-colors bg-[#F1ECE5] px-3.5 py-1.5 rounded-[12px] cursor-pointer select-none">
+          <button className="text-[13px] font-semibold text-text-muted hover:text-primary transition-colors bg-surface px-3.5 py-1.5 rounded-[12px] cursor-pointer select-none theme-transition">
             Export
           </button>
         </div>
@@ -40,7 +39,7 @@ export function OrdersTable() {
         <div className="overflow-x-auto w-full">
           <table className="w-full border-collapse text-left font-sans min-w-[420px]">
             <thead>
-              <tr className="bg-[#F1ECE5] rounded-xl overflow-hidden">
+              <tr className="bg-surface rounded-xl overflow-hidden theme-transition">
                 <th className="px-4 py-3 text-[13px] font-bold text-text-heading rounded-l-[14px]">
                   Order
                 </th>
@@ -59,12 +58,19 @@ export function OrdersTable() {
               </tr>
             </thead>
             <tbody>
-              {ordersData.map((row) => (
+              {rows.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-text-muted text-[14px]">
+                    No recent orders
+                  </td>
+                </tr>
+              ) : (
+                rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="h-[56px] border-b border-[#D8CCBF]/60 last:border-0 hover:bg-white/40 transition-colors"
+                  className="h-[56px] border-b border-border-custom/60 last:border-0 hover:bg-white/40 transition-colors"
                 >
-                  <td className="px-4 py-2 text-[14px] font-bold text-[#CB7637]">
+                  <td className="px-4 py-2 text-[14px] font-bold text-primary">
                     {row.id}
                   </td>
                   <td className="px-4 py-2 text-[14px] font-semibold text-text-body">
@@ -86,7 +92,8 @@ export function OrdersTable() {
                     </span>
                   </td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>
